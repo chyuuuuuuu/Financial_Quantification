@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主升模型单股分析</title>
+    <style>
+        :root {
+            --bg: #f4f6f8;
+            --panel: #ffffff;
+            --panel-2: #f8fafc;
+            --line: #d7dde5;
+            --text: #17212b;
+            --muted: #627181;
+            --up: #d64545;
+            --down: #178f63;
+            --teal: #0f766e;
+            --amber: #b7791f;
+            --indigo: #475569;
+            --shadow: 0 8px 24px rgba(23, 33, 43, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .shell {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 18px;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        .title {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 0;
+        }
+        .sub {
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .nav {
+            color: var(--teal);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .toolbar {
+            display: grid;
+            grid-template-columns: minmax(220px, 360px) 150px 150px auto auto;
+            gap: 10px;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 14px;
+        }
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 9px 10px;
+            font-size: 14px;
+            background: #fff;
+            color: var(--text);
+        }
+        label.check {
+            display: inline-flex;
+            gap: 7px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        button {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            background: var(--teal);
+            color: white;
+            cursor: pointer;
+            font-weight: 650;
+            font-size: 14px;
+        }
+        button:disabled {
+            cursor: wait;
+            opacity: 0.6;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 14px;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .panel h2 {
+            margin: 0;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            font-size: 15px;
+            background: var(--panel-2);
+        }
+        .body { padding: 14px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(110px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .stat {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 11px 12px;
+            box-shadow: var(--shadow);
+            min-height: 76px;
+        }
+        .stat .k {
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .stat .v {
+            font-size: 20px;
+            font-weight: 750;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+        .up { color: var(--up); }
+        .down { color: var(--down); }
+        .neutral { color: var(--muted); }
+        .tag {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 3px 9px;
+            font-size: 12px;
+            border: 1px solid var(--line);
+            background: var(--panel-2);
+            color: var(--indigo);
+        }
+        .tag.warn {
+            color: #8a4b00;
+            border-color: #e2b76f;
+            background: #fff7e6;
+        }
+        .tag.good {
+            color: var(--teal);
+            border-color: #94d3ca;
+            background: #ecfdf9;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 380px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 8px 9px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            white-space: nowrap;
+        }
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            background: var(--panel-2);
+        }
+        .table-scroll {
+            overflow-x: auto;
+            max-height: 360px;
+        }
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .item {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 11px;
+            background: var(--panel-2);
+        }
+        .item strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+        .muted { color: var(--muted); }
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 14px;
+        }
+        .error {
+            border: 1px solid #f0b4b4;
+            background: #fff0f0;
+            color: #9b1c1c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .loading {
+            padding: 30px;
+            color: var(--muted);
+            text-align: center;
+        }
+        .hidden { display: none; }
+
+        @media (max-width: 980px) {
+            .toolbar { grid-template-columns: 1fr 1fr; }
+            .grid, .two { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            canvas { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="topbar">
+            <div class="title">
+                <h1>主升模型单股分析</h1>
+                <div class="sub">5 年爆量缩量模型 · 单股量价复盘 · 支撑压力推演</div>
+            </div>
+            <a class="nav" href="/">返回因子首页</a>
+        </div>
+
+        <div class="toolbar">
+            <input id="stockInput" type="text" list="stockList" placeholder="输入代码或名称，例如 603629 / 利通电子" value="603629">
+            <datalist id="stockList"></datalist>
+            <input id="startDate" type="date" value="2025-06-14">
+            <label class="check"><input id="excludeChinext" type="checkbox" checked> 排除创业板</label>
+            <label class="check"><input id="refreshData" type="checkbox" checked> 刷新日线</label>
+            <button id="analyzeBtn">分析</button>
+        </div>
+
+        <div id="message"></div>
+        <div id="result" class="hidden">
+            <div class="stats" id="stats"></div>
+            <div class="grid">
+                <section class="panel">
+                    <h2>最近 K 线与成交量</h2>
+                    <canvas id="chart" width="1000" height="420"></canvas>
+                </section>
+                <section class="panel">
+                    <h2>模型判断</h2>
+                    <div class="body" id="modelBox"></div>
+                </section>
+            </div>
+
+            <div class="two">
+                <section class="panel">
+                    <h2>支撑与压力</h2>
+                    <div class="body" id="levelsBox"></div>
+                </section>
+                <section class="panel">
+                    <h2>反弹推演</h2>
+                    <div class="body" id="scenarioBox"></div>
+                </section>
+            </div>
+
+            <div class="two">
+                <section class="panel">
+                    <h2>历史信号</h2>
+                    <div class="body" id="signalBox"></div>
+                </section>
+                <section class="panel">
+                    <h2>最近交易日</h2>
+                    <div class="table-scroll" id="barsBox"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('stockInput');
+        const list = document.getElementById('stockList');
+        const btn = document.getElementById('analyzeBtn');
+        const message = document.getElementById('message');
+        const result = document.getElementById('result');
+
+        const fmt = (v, d = 2) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '-';
+        const pct = (v) => {
+            const n = Number(v);
+            const cls = n > 0 ? 'up' : n < 0 ? 'down' : 'neutral';
+            return `<span class="${cls}">${n > 0 ? '+' : ''}${fmt(n)}%</span>`;
+        };
+        const clsPct = (v) => Number(v) > 0 ? 'up' : Number(v) < 0 ? 'down' : 'neutral';
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function resolveCode() {
+            const value = input.value.trim();
+            const match = value.match(/\b(\d{6})\b/);
+            return match ? match[1] : value;
+        }
+
+        async function searchStocks() {
+            const q = input.value.trim();
+            if (!q) return;
+            const exclude = document.getElementById('excludeChinext').checked;
+            const res = await fetch(`/api/uptrend/search?q=${encodeURIComponent(q)}&exclude_chinext=${exclude}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            list.innerHTML = (data.items || []).map(x => `<option value="${x.code} ${esc(x.name)}"></option>`).join('');
+        }
+
+        function renderStats(data) {
+            const l = data.latest;
+            const model = data.model;
+            const status = data.trade_view.status;
+            const chip = data.is_chinext ? '<span class="tag warn">创业板</span>' : '<span class="tag good">可交易范围</span>';
+            document.getElementById('stats').innerHTML = `
+                <div class="stat"><div class="k">股票</div><div class="v">${data.code} ${esc(data.name)}</div><div>${chip}</div></div>
+                <div class="stat"><div class="k">最新日期</div><div class="v">${l.date}</div><div class="muted">${data.data_source}</div></div>
+                <div class="stat"><div class="k">收盘 / 涨跌</div><div class="v ${clsPct(l.pct_chg)}">${fmt(l.close)}</div><div>${pct(l.pct_chg)}</div></div>
+                <div class="stat"><div class="k">成交额 / 换手</div><div class="v">${esc(l.amount_text)}</div><div class="muted">${fmt(l.turnover)}%</div></div>
+                <div class="stat"><div class="k">量比 / 额比</div><div class="v">${fmt(l.volume_ratio_20, 2)}</div><div class="muted">${fmt(l.amount_ratio_20, 2)}</div></div>
+                <div class="stat"><div class="k">状态</div><div class="v">${esc(status)}</div><div class="muted">综合分 ${model ? fmt(model.final_score) : '-'}</div></div>
+            `;
+        }
+
+        function renderModel(data) {
+            const model = data.model;
+            const notes = data.trade_view.notes.map(n => `<div class="item">${esc(n)}</div>`).join('');
+            if (!model) {
+                document.getElementById('modelBox').innerHTML = `
+                    <div class="list">${notes}</div>
+                    <div style="margin-top:10px" class="tag warn">当前无缩量潜伏模型信号</div>
+                `;
+                return;
+            }
+            document.getElementById('modelBox').innerHTML = `
+                <div class="stats" style="grid-template-columns: repeat(2, 1fr); margin-bottom:10px">
+                    <div class="stat"><div class="k">模型概率</div><div class="v">${fmt(model.model_prob)}%</div></div>
+                    <div class="stat"><div class="k">综合分</div><div class="v">${fmt(model.final_score)}</div></div>
+                    <div class="stat"><div class="k">爆量日</div><div class="v">${model.entry_date}</div><div class="muted">${model.entry_age} 个交易日</div></div>
+                    <div class="stat"><div class="k">10日量缩</div><div class="v">${fmt(model.volume_10_vs_entry, 3)}</div><div class="muted">额缩 ${fmt(model.amount_10_vs_entry, 3)}</div></div>
+                </div>
+                <div class="list">${notes}</div>
+            `;
+        }
+
+        function levelTable(rows) {
+            if (!rows || !rows.length) return '<div class="muted">暂无</div>';
+            return `<table><thead><tr><th>价格</th><th>距离</th><th>依据</th></tr></thead><tbody>
+                ${rows.map(r => `<tr><td>${fmt(r.price)}</td><td>${pct(r.distance_pct)}</td><td>${esc(r.reason)}</td></tr>`).join('')}
+            </tbody></table>`;
+        }
+
+        function renderLevels(data) {
+            const lv = data.levels;
+            const mas = Object.entries(lv.moving_averages || {}).map(([k, v]) => `<tr><td>${k}</td><td>${fmt(v.value)}</td><td>${pct(v.distance_pct)}</td></tr>`).join('');
+            document.getElementById('levelsBox').innerHTML = `
+                <div class="two" style="margin-top:0">
+                    <div><strong>压力</strong>${levelTable(lv.pressure)}</div>
+                    <div><strong>支撑</strong>${levelTable(lv.support)}</div>
+                </div>
+                <div style="margin-top:12px"><strong>均线</strong>
+                    <table><thead><tr><th>均线</th><th>价格</th><th>距离</th></tr></thead><tbody>${mas}</tbody></table>
+                </div>
+            `;
+        }
+
+        function renderScenarios(data) {
+            document.getElementById('scenarioBox').innerHTML = `
+                <div class="list">
+                    ${data.scenarios.map(s => `<div class="item"><strong>${esc(s.name)} · ${fmt(s.target)}</strong><div>${esc(s.condition)}</div><div class="muted">${esc(s.action)}</div></div>`).join('')}
+                </div>
+            `;
+        }
+
+        function simpleTable(rows, cols) {
+            if (!rows || !rows.length) return '<div class="muted">暂无</div>';
+            return `<div class="table-scroll"><table><thead><tr>${cols.map(c => `<th>${c[1]}</th>`).join('')}</tr></thead><tbody>
+                ${rows.map(r => `<tr>${cols.map(c => `<td>${c[2] === 'pct' ? pct(r[c[0]]) : esc(r[c[0]])}</td>`).join('')}</tr>`).join('')}
+            </tbody></table></div>`;
+        }
+
+        function renderSignals(data) {
+            document.getElementById('signalBox').innerHTML = `
+                <strong>三倍爆量阳</strong>
+                ${simpleTable(data.signals.entries, [['date','日期'], ['close','收盘'], ['pct_chg','涨跌','pct'], ['amount_text','成交额'], ['volume_ratio','量比']])}
+                <div style="height:12px"></div>
+                <strong>历史主升确认</strong>
+                ${simpleTable(data.signals.main_starts, [['date','日期'], ['close','收盘'], ['pct_chg','涨跌','pct'], ['future_20d_multiple','20日倍数']])}
+            `;
+        }
+
+        function renderBars(data) {
+            document.getElementById('barsBox').innerHTML = simpleTable(
+                [...data.recent_bars].reverse(),
+                [['date','日期'], ['close','收盘'], ['pct_chg','涨跌','pct'], ['amount_text','成交额'], ['turnover','换手'], ['volume_ratio_20','量比']]
+            );
+        }
+
+        function drawChart(data) {
+            const canvas = document.getElementById('chart');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = Math.max(800, Math.floor(rect.width * dpr));
+            canvas.height = Math.floor(rect.height * dpr);
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            const w = rect.width;
+            const h = rect.height;
+            ctx.clearRect(0, 0, w, h);
+            const bars = data.recent_bars || [];
+            if (!bars.length) return;
+            const pad = { l: 54, r: 18, t: 18, b: 56 };
+            const priceH = h * 0.68;
+            const volTop = priceH + 14;
+            const maxP = Math.max(...bars.map(b => b.high));
+            const minP = Math.min(...bars.map(b => b.low));
+            const maxV = Math.max(...bars.map(b => b.volume));
+            const xw = (w - pad.l - pad.r) / bars.length;
+            const y = (p) => pad.t + (maxP - p) / (maxP - minP || 1) * (priceH - pad.t - 8);
+            ctx.strokeStyle = '#e1e7ef';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 5; i++) {
+                const yy = pad.t + i * (priceH - pad.t) / 4;
+                ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke();
+                const price = maxP - i * (maxP - minP) / 4;
+                ctx.fillStyle = '#627181'; ctx.font = '12px sans-serif'; ctx.fillText(price.toFixed(2), 8, yy + 4);
+            }
+            bars.forEach((b, i) => {
+                const x = pad.l + i * xw + xw / 2;
+                const up = Number(b.close) >= Number(b.open);
+                const color = up ? '#d64545' : '#178f63';
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.beginPath(); ctx.moveTo(x, y(b.high)); ctx.lineTo(x, y(b.low)); ctx.stroke();
+                const top = y(Math.max(b.open, b.close));
+                const bottom = y(Math.min(b.open, b.close));
+                const bodyH = Math.max(2, bottom - top);
+                ctx.fillRect(x - xw * 0.28, top, xw * 0.56, bodyH);
+                const vh = (b.volume / maxV) * (h - volTop - pad.b);
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(x - xw * 0.28, h - pad.b - vh, xw * 0.56, vh);
+                ctx.globalAlpha = 1;
+                if (i % Math.ceil(bars.length / 6) === 0) {
+                    ctx.fillStyle = '#627181';
+                    ctx.save();
+                    ctx.translate(x - 18, h - 18);
+                    ctx.rotate(-0.45);
+                    ctx.fillText(String(b.date).slice(5), 0, 0);
+                    ctx.restore();
+                }
+            });
+        }
+
+        async function analyze() {
+            const code = resolveCode();
+            if (!code) return;
+            btn.disabled = true;
+            message.innerHTML = '<div class="loading">分析中...</div>';
+            result.classList.add('hidden');
+            const refresh = document.getElementById('refreshData').checked;
+            const startDate = document.getElementById('startDate').value;
+            try {
+                const res = await fetch(`/api/uptrend/analyze/${encodeURIComponent(code)}?refresh=${refresh}&start_date=${encodeURIComponent(startDate)}`);
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                    message.innerHTML = `<div class="error">${esc(data.message || data.error || '分析失败')}</div>`;
+                    return;
+                }
+                message.innerHTML = data.is_chinext ? '<div class="error">该股票是创业板，已标记为不可交易范围。</div>' : '';
+                result.classList.remove('hidden');
+                renderStats(data);
+                renderModel(data);
+                renderLevels(data);
+                renderScenarios(data);
+                renderSignals(data);
+                renderBars(data);
+                requestAnimationFrame(() => drawChart(data));
+            } catch (err) {
+                message.innerHTML = `<div class="error">${esc(err.message)}</div>`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        input.addEventListener('input', () => {
+            clearTimeout(input._t);
+            input._t = setTimeout(searchStocks, 180);
+        });
+        btn.addEventListener('click', analyze);
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') analyze();
+        });
+        window.addEventListener('resize', () => {
+            if (!result.classList.contains('hidden') && window._lastData) drawChart(window._lastData);
+        });
+
+        const oldDraw = drawChart;
+        drawChart = function(data) {
+            window._lastData = data;
+            oldDraw(data);
+        };
+
+        analyze();
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local market data cache is large. Keep generated static reports instead.
+data_cache/**
+!data_cache/
+!data_cache/manual_uptrend_labels.json
+!data_cache/backtests/
+!data_cache/backtests/*.csv
+!data_cache/volume_contraction_screen_20260701_mainboard_entry_close/
+!data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv
+
+# Model checkpoints are small enough for this repository and are required by
+# scheduled report generation.
+!model_cache/
+!model_cache/*.pt
+!model_cache/*.pkl
+
+# Generated web report payloads are intentionally publishable.
+!static/
+!static/reports/
+!static/reports/*.json
+!static/*.html
+
+*.log
+*.tmp

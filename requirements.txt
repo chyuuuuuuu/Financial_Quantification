@@ -1,0 +1,10 @@
+# 量化因子爬取与可视化系统依赖
+akshare>=1.14.0
+pandas>=2.0.0
+numpy>=1.20.0
+scikit-learn>=1.0.0
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+jinja2>=3.1.0
+httpx>=0.26.0
