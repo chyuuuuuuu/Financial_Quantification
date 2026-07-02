@@ -1,6 +1,15 @@
 name: Publish Stock Report
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "static/**"
+      - "templates/daily_top20.html"
+      - "daily_top20_pipeline.py"
+      - "app.py"
+      - ".github/workflows/pages-report.yml"
+      - "scripts/run_daily_top20_and_publish.sh"
   workflow_dispatch:
   schedule:
     # 16:40 Asia/Shanghai on trading weekdays. GitHub cron uses UTC.
