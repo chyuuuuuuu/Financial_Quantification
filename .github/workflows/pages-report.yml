@@ -6,7 +6,9 @@ on:
     paths:
       - "static/**"
       - "templates/daily_top20.html"
+      - "templates/formula_breakout.html"
       - "daily_top20_pipeline.py"
+      - "formula_breakout_pipeline.py"
       - "app.py"
       - ".github/workflows/pages-report.yml"
       - "scripts/run_daily_top20_and_publish.sh"
@@ -46,6 +48,7 @@ jobs:
         run: |
           if [ -d data_cache/main_uptrend/hist ] && [ -f model_cache/volume_contraction_breakout_5y_tcn.pt ]; then
             python daily_top20_pipeline.py --run-once --skip-refresh --candidates-file data_cache/daily_top20_snapshots/latest_candidates.csv || true
+            python formula_breakout_pipeline.py --run-once || true
           else
             echo "Historical cache/model not found in repository; publishing existing static/ report only."
           fi

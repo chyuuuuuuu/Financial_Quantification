@@ -46,6 +46,15 @@ async def daily_top20_page():
     return HTMLResponse(content="<h1>请先创建 templates/daily_top20.html</h1>")
 
 
+@app.get("/formula-breakout", response_class=HTMLResponse)
+async def formula_breakout_page():
+    """公式 Port 选股页"""
+    html_path = Path(__file__).parent / "templates" / "formula_breakout.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>请先创建 templates/formula_breakout.html</h1>")
+
+
 @app.get("/uptrend", response_class=HTMLResponse)
 async def uptrend_page():
     """主升模型单股分析页"""
@@ -92,6 +101,21 @@ async def daily_top20_data():
         if path.exists():
             return JSONResponse(content=json.loads(path.read_text(encoding="utf-8")))
     return JSONResponse(status_code=404, content={"message": "暂无每日 Top20 数据，请先运行 daily_top20_pipeline.py --run-once"})
+
+
+@app.get("/api/formula-breakout")
+async def formula_breakout_data():
+    """读取公式 Port 最新快照和回测"""
+    import json
+
+    candidates = [
+        STATIC_DIR / "reports" / "formula_breakout.json",
+        Path(__file__).parent / "data_cache" / "formula_breakout_snapshots" / "latest_analysis.json",
+    ]
+    for path in candidates:
+        if path.exists():
+            return JSONResponse(content=json.loads(path.read_text(encoding="utf-8")))
+    return JSONResponse(status_code=404, content={"message": "暂无公式 Port 数据，请先运行 formula_breakout_pipeline.py --run-once"})
 
 
 @app.get("/api/uptrend/search")

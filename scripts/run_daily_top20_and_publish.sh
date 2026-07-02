@@ -8,11 +8,18 @@ REPO_URL="${FIN_QUANT_REPO_URL:-https://github.com/chyuuuuuuu/Financial_Quantifi
 BRANCH="${FIN_QUANT_BRANCH:-main}"
 TODAY="${1:-$(date +%F)}"
 
+if [ -n "${GIT_SSH_KEY_FILE:-}" ]; then
+  export GIT_SSH_COMMAND="ssh -i $GIT_SSH_KEY_FILE -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+fi
+
 cd "$ROOT"
-mkdir -p "$(dirname "$DEPLOY_REPO")" data_cache/daily_top20_snapshots
+mkdir -p "$(dirname "$DEPLOY_REPO")" data_cache/daily_top20_snapshots data_cache/formula_breakout_snapshots
 
 echo "[$(date '+%F %T')] run daily Top20 for $TODAY"
 "$PYTHON" daily_top20_pipeline.py --run-once --target-date "$TODAY" ${TOP20_EXTRA_ARGS:-}
+
+echo "[$(date '+%F %T')] run formula breakout port for $TODAY"
+"$PYTHON" formula_breakout_pipeline.py --run-once --target-date "$TODAY" ${FORMULA_EXTRA_ARGS:-}
 
 if [ ! -d "$DEPLOY_REPO/.git" ]; then
   echo "[$(date '+%F %T')] clone deploy repo to $DEPLOY_REPO"
@@ -25,23 +32,31 @@ git -C "$DEPLOY_REPO" pull --ff-only origin "$BRANCH"
 
 mkdir -p "$DEPLOY_REPO/static/reports" "$DEPLOY_REPO/templates" "$DEPLOY_REPO/scripts" "$DEPLOY_REPO/.github/workflows"
 cp daily_top20_pipeline.py "$DEPLOY_REPO/daily_top20_pipeline.py"
+cp formula_breakout_pipeline.py "$DEPLOY_REPO/formula_breakout_pipeline.py"
 cp app.py "$DEPLOY_REPO/app.py"
 cp templates/daily_top20.html "$DEPLOY_REPO/templates/daily_top20.html"
+cp templates/formula_breakout.html "$DEPLOY_REPO/templates/formula_breakout.html"
 cp scripts/run_daily_top20_and_publish.sh "$DEPLOY_REPO/scripts/run_daily_top20_and_publish.sh"
 cp .github/workflows/pages-report.yml "$DEPLOY_REPO/.github/workflows/pages-report.yml"
 cp static/index.html "$DEPLOY_REPO/static/index.html"
 cp static/daily-top20.html "$DEPLOY_REPO/static/daily-top20.html"
+cp static/formula-breakout.html "$DEPLOY_REPO/static/formula-breakout.html"
 cp static/reports/daily_top20.json "$DEPLOY_REPO/static/reports/daily_top20.json"
+cp static/reports/formula_breakout.json "$DEPLOY_REPO/static/reports/formula_breakout.json"
 
 git -C "$DEPLOY_REPO" add \
   daily_top20_pipeline.py \
+  formula_breakout_pipeline.py \
   app.py \
   templates/daily_top20.html \
+  templates/formula_breakout.html \
   scripts/run_daily_top20_and_publish.sh \
   .github/workflows/pages-report.yml \
   static/index.html \
   static/daily-top20.html \
-  static/reports/daily_top20.json
+  static/formula-breakout.html \
+  static/reports/daily_top20.json \
+  static/reports/formula_breakout.json
 
 if git -C "$DEPLOY_REPO" diff --cached --quiet; then
   echo "[$(date '+%F %T')] no public report changes to publish"
@@ -50,7 +65,7 @@ fi
 
 git -C "$DEPLOY_REPO" config user.name "${GIT_AUTHOR_NAME:-daily-top20-bot}"
 git -C "$DEPLOY_REPO" config user.email "${GIT_AUTHOR_EMAIL:-daily-top20-bot@users.noreply.github.com}"
-git -C "$DEPLOY_REPO" commit -m "Update daily Top20 report $TODAY"
+git -C "$DEPLOY_REPO" commit -m "Update daily stock reports $TODAY"
 
 if [ -n "${GITHUB_TOKEN:-}" ] || [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
   ASKPASS="$(mktemp /tmp/github_askpass_XXXXXX.sh)"
@@ -83,4 +98,4 @@ else
   git -C "$DEPLOY_REPO" push origin "$BRANCH"
 fi
 
-echo "[$(date '+%F %T')] published daily Top20 report $TODAY"
+echo "[$(date '+%F %T')] published daily stock reports $TODAY"

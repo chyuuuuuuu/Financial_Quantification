@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公式 Port 选股</title>
+    <style>
+        :root {
+            --bg: #f4f6f8;
+            --panel: #fff;
+            --soft: #f8fafc;
+            --line: #dbe3eb;
+            --text: #14212f;
+            --muted: #657387;
+            --red: #d94b4b;
+            --green: #14845d;
+            --blue: #2563eb;
+            --amber: #a76813;
+            --shadow: 0 8px 22px rgba(20, 33, 47, .07);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+        }
+        .shell { max-width: 1540px; margin: 0 auto; padding: 16px; }
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        h1 { margin: 0; font-size: 22px; letter-spacing: 0; }
+        .sub { margin-top: 4px; color: var(--muted); font-size: 13px; }
+        .nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--panel);
+            color: var(--muted);
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .pill.active { color: var(--blue); border-color: #b9ccff; background: #f4f7ff; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .card, .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        .card { padding: 12px; min-height: 78px; }
+        .k { color: var(--muted); font-size: 12px; }
+        .v { margin-top: 6px; font-size: 21px; font-weight: 760; line-height: 1.12; }
+        .up { color: var(--red); }
+        .down { color: var(--green); }
+        .neutral { color: var(--muted); }
+        .grid {
+            display: grid;
+            grid-template-columns: .9fr 1.1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .panel { margin-bottom: 12px; }
+        .panel h2 {
+            margin: 0;
+            padding: 11px 13px;
+            border-bottom: 1px solid var(--line);
+            background: var(--soft);
+            font-size: 15px;
+        }
+        .body { padding: 12px; }
+        canvas { display: block; width: 100%; height: 260px; }
+        .analysis {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .note {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 11px;
+            background: #fff;
+            min-height: 78px;
+        }
+        .note .title { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+        .note .text { font-size: 14px; line-height: 1.45; }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input, select {
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            padding: 8px 9px;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .table-wrap {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 620px;
+        }
+        table {
+            border-collapse: collapse;
+            min-width: 1320px;
+            width: 100%;
+            font-size: 12.5px;
+        }
+        th, td {
+            padding: 7px 8px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+            text-align: left;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: var(--soft);
+            color: var(--muted);
+        }
+        .reason {
+            max-width: 430px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .error {
+            padding: 12px;
+            border: 1px solid #efb3b3;
+            background: #fff2f2;
+            color: #9b1c1c;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 980px) {
+            .shell { padding: 10px; }
+            .topbar { flex-direction: column; }
+            .nav { justify-content: flex-start; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .grid, .analysis { grid-template-columns: 1fr; }
+            canvas { height: 230px; }
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <div class="topbar">
+        <div>
+            <h1>公式 Port 选股</h1>
+            <div class="sub" id="subtitle">加载中...</div>
+        </div>
+        <div class="nav">
+            <a class="pill" href="./daily-top20.html">模型 Top20</a>
+            <a class="pill active" href="./formula-breakout.html">公式 Port</a>
+        </div>
+    </div>
+    <div id="error"></div>
+
+    <div class="cards">
+        <div class="card"><div class="k">快照日期</div><div class="v" id="date">-</div></div>
+        <div class="card"><div class="k">入选数量</div><div class="v" id="selected">-</div></div>
+        <div class="card"><div class="k">平均评分</div><div class="v" id="avgScore">-</div></div>
+        <div class="card"><div class="k">平均突破幅度</div><div class="v" id="avgGap">-</div></div>
+        <div class="card"><div class="k">近期次日均值</div><div class="v" id="fbAvg">-</div></div>
+        <div class="card"><div class="k">近期胜率</div><div class="v" id="fbWin">-</div></div>
+    </div>
+
+    <div class="grid">
+        <section class="panel">
+            <h2>每日回测</h2>
+            <div class="body"><canvas id="feedbackChart"></canvas></div>
+        </section>
+        <section class="panel">
+            <h2>分析</h2>
+            <div class="body">
+                <div class="analysis">
+                    <div class="note"><div class="title">组合口径</div><div class="text" id="portNote">-</div></div>
+                    <div class="note"><div class="title">量能结构</div><div class="text" id="volumeNote">-</div></div>
+                    <div class="note"><div class="title">回测反馈</div><div class="text" id="feedbackNote">-</div></div>
+                    <div class="note"><div class="title">风险提示</div><div class="text">只用于公式复盘和模型研究；每日 15:30 快照留档，后续收益按落盘快照回测。</div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="panel">
+        <h2>当日入选</h2>
+        <div class="body">
+            <div class="toolbar">
+                <input id="search" placeholder="代码或名称">
+                <select id="sortMode">
+                    <option value="rank">按排名</option>
+                    <option value="score">按评分</option>
+                    <option value="gap">按突破幅度</option>
+                    <option value="amount">按成交额</option>
+                </select>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>排名</th><th>代码</th><th>名称</th><th>日期</th>
+                        <th>评分</th><th>收盘</th><th>涨跌幅</th><th>成交额</th>
+                        <th>三倍阳日</th><th>N</th><th>三倍量</th>
+                        <th>MA5/三倍量</th><th>MA10/三倍量</th>
+                        <th>突破幅度</th><th>前日缺口</th><th>理由</th>
+                    </tr>
+                    </thead>
+                    <tbody id="selectedBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>最近回测明细</h2>
+        <div class="body">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>快照日</th><th>代码</th><th>名称</th><th>收盘</th>
+                        <th>次日</th><th>次日收益</th><th>次日最高</th><th>次日最低</th>
+                        <th>3日收益</th><th>5日收益</th>
+                    </tr>
+                    </thead>
+                    <tbody id="feedbackBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+const fmt = (v, d = 2) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '-';
+const pctClass = v => Number(v) > 0 ? 'up' : Number(v) < 0 ? 'down' : 'neutral';
+const amountText = v => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return '-';
+    if (n >= 100000000) return `${(n / 100000000).toFixed(2)}亿`;
+    if (n >= 10000) return `${(n / 10000).toFixed(1)}万`;
+    return n.toFixed(0);
+};
+
+let payload = null;
+let selectedRows = [];
+
+async function fetchJson(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`${url} ${res.status}`);
+    return res.json();
+}
+
+async function loadData() {
+    const urls = ['/api/formula-breakout', './reports/formula_breakout.json', '/static/reports/formula_breakout.json'];
+    let lastErr = null;
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) { lastErr = err; }
+    }
+    throw lastErr || new Error('no data');
+}
+
+function setText(id, value, cls = '') {
+    const el = document.getElementById(id);
+    el.textContent = value;
+    el.className = `v ${cls}`.trim();
+}
+
+function renderCards(data) {
+    document.getElementById('subtitle').textContent = `${data.formula_name || '公式'} · 生成时间 ${data.generated_at || '-'}`;
+    setText('date', data.snapshot_date || '-');
+    setText('selected', data.selected_count ?? 0);
+    setText('avgScore', fmt(data.avg_formula_score, 2));
+    setText('avgGap', `${fmt(data.avg_breakout_gap_pct, 2)}%`, pctClass(data.avg_breakout_gap_pct));
+    const fb = data.recent_feedback || {};
+    setText('fbAvg', fb.avg_next_ret_pct == null ? '-' : `${fmt(fb.avg_next_ret_pct, 2)}%`, pctClass(fb.avg_next_ret_pct));
+    setText('fbWin', fb.win_rate_pct == null ? '-' : `${fmt(fb.win_rate_pct, 1)}%`);
+}
+
+function renderNotes(data) {
+    const rows = data.selected_rows || [];
+    const avgN = rows.length ? rows.reduce((s, r) => s + Number(r.bars_since_triple || 0), 0) / rows.length : null;
+    const avgV10 = rows.length ? rows.reduce((s, r) => s + Number(r.vol_ma10_vs_triple || 0), 0) / rows.length : null;
+    document.getElementById('portNote').textContent = `当前快照共 ${data.selected_count || 0} 只，按公式评分和成交额排序；平均 N=${avgN == null ? '-' : fmt(avgN, 1)}。`;
+    document.getElementById('volumeNote').textContent = `入选票要求 MA5/MA10 成交量低于三倍阳当日量，当前平均 MA10/三倍量=${avgV10 == null ? '-' : fmt(avgV10, 2)}。`;
+    const fb = data.recent_feedback || {};
+    document.getElementById('feedbackNote').textContent = fb.rows ? `最近 ${fb.rows} 条已完成次日回测，均值 ${fmt(fb.avg_next_ret_pct, 2)}%，胜率 ${fmt(fb.win_rate_pct, 1)}%。` : '暂无完成的未来交易日反馈，后续快照会自动补齐。';
+}
+
+function renderChart(data) {
+    const canvas = document.getElementById('feedbackChart');
+    const ctx = canvas.getContext('2d');
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(320, Math.floor(rect.width * ratio));
+    canvas.height = Math.max(220, Math.floor(rect.height * ratio));
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    const rows = data.daily_feedback || [];
+    const pad = { left: 42, right: 12, top: 18, bottom: 34 };
+    const w = rect.width - pad.left - pad.right;
+    const h = rect.height - pad.top - pad.bottom;
+    ctx.strokeStyle = '#dbe3eb';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + h);
+    ctx.lineTo(pad.left + w, pad.top + h);
+    ctx.stroke();
+    if (!rows.length) {
+        ctx.fillStyle = '#657387';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('暂无已完成回测', pad.left + 8, pad.top + 28);
+        return;
+    }
+    const vals = rows.map(r => Number(r.avg_next_ret_pct || 0));
+    const maxAbs = Math.max(1, ...vals.map(v => Math.abs(v)));
+    const zeroY = pad.top + h / 2;
+    ctx.strokeStyle = '#aeb9c7';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, zeroY);
+    ctx.lineTo(pad.left + w, zeroY);
+    ctx.stroke();
+
+    const gap = w / rows.length;
+    rows.forEach((r, i) => {
+        const v = Number(r.avg_next_ret_pct || 0);
+        const x = pad.left + i * gap + gap * 0.2;
+        const bw = Math.max(8, gap * 0.6);
+        const bh = Math.abs(v) / maxAbs * (h / 2 - 8);
+        const y = v >= 0 ? zeroY - bh : zeroY;
+        ctx.fillStyle = v >= 0 ? '#d94b4b' : '#14845d';
+        ctx.fillRect(x, y, bw, Math.max(2, bh));
+        ctx.fillStyle = '#657387';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(String(r.snapshot_date).slice(5), x - 2, pad.top + h + 20);
+    });
+}
+
+function renderSelected() {
+    const q = document.getElementById('search').value.trim();
+    const mode = document.getElementById('sortMode').value;
+    let rows = selectedRows.slice();
+    if (q) rows = rows.filter(r => String(r.code || '').includes(q) || String(r.name || '').includes(q));
+    const sorters = {
+        rank: (a, b) => Number(a.rank || 0) - Number(b.rank || 0),
+        score: (a, b) => Number(b.formula_score || 0) - Number(a.formula_score || 0),
+        gap: (a, b) => Number(b.breakout_gap_pct || 0) - Number(a.breakout_gap_pct || 0),
+        amount: (a, b) => Number(b.amount || 0) - Number(a.amount || 0),
+    };
+    rows.sort(sorters[mode]);
+    document.getElementById('selectedBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${r.rank ?? '-'}</td>
+            <td>${r.code || '-'}</td>
+            <td>${r.name || '-'}</td>
+            <td>${r.latest_date || '-'}</td>
+            <td>${fmt(r.formula_score, 2)}</td>
+            <td>${fmt(r.close, 2)}</td>
+            <td class="${pctClass(r.pct_chg)}">${fmt(r.pct_chg, 2)}%</td>
+            <td>${amountText(r.amount)}</td>
+            <td>${r.triple_date || '-'}</td>
+            <td>${r.bars_since_triple ?? '-'}</td>
+            <td>${fmt(r.volume_vs_prev, 2)}x</td>
+            <td>${fmt(r.vol_ma5_vs_triple, 2)}</td>
+            <td>${fmt(r.vol_ma10_vs_triple, 2)}</td>
+            <td class="${pctClass(r.breakout_gap_pct)}">${fmt(r.breakout_gap_pct, 2)}%</td>
+            <td class="${pctClass(r.prior_close_gap_pct)}">${fmt(r.prior_close_gap_pct, 2)}%</td>
+            <td class="reason" title="${r.reason || ''}">${r.reason || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+function renderFeedback(rows) {
+    document.getElementById('feedbackBody').innerHTML = (rows || []).slice().reverse().map(r => `
+        <tr>
+            <td>${r.snapshot_date || '-'}</td>
+            <td>${r.code || '-'}</td>
+            <td>${r.name || '-'}</td>
+            <td>${fmt(r.close, 2)}</td>
+            <td>${r.next_date || '-'}</td>
+            <td class="${pctClass(r.next_ret_pct)}">${fmt(r.next_ret_pct, 2)}%</td>
+            <td class="${pctClass(r.next_high_pct)}">${fmt(r.next_high_pct, 2)}%</td>
+            <td class="${pctClass(r.next_low_pct)}">${fmt(r.next_low_pct, 2)}%</td>
+            <td class="${pctClass(r.ret_3d_pct)}">${r.ret_3d_pct == null ? '-' : `${fmt(r.ret_3d_pct, 2)}%`}</td>
+            <td class="${pctClass(r.ret_5d_pct)}">${r.ret_5d_pct == null ? '-' : `${fmt(r.ret_5d_pct, 2)}%`}</td>
+        </tr>
+    `).join('');
+}
+
+async function init() {
+    try {
+        payload = await loadData();
+        selectedRows = payload.selected_rows || [];
+        renderCards(payload);
+        renderNotes(payload);
+        renderChart(payload);
+        renderSelected();
+        renderFeedback(payload.feedback_rows || []);
+        document.getElementById('search').addEventListener('input', renderSelected);
+        document.getElementById('sortMode').addEventListener('change', renderSelected);
+    } catch (err) {
+        document.getElementById('error').innerHTML = `<div class="error">加载失败：${err.message}</div>`;
+    }
+}
+
+window.addEventListener('resize', () => payload && renderChart(payload));
+init();
+</script>
+</body>
+</html>
