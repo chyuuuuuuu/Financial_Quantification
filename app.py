@@ -30,11 +30,20 @@ async def favicon():
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    """首页"""
-    html_path = Path(__file__).parent / "templates" / "index.html"
+    """每日 Top20 首页"""
+    html_path = Path(__file__).parent / "templates" / "daily_top20.html"
     if html_path.exists():
         return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
-    return HTMLResponse(content="<h1>请先创建 templates/index.html</h1>")
+    return HTMLResponse(content="<h1>请先创建 templates/daily_top20.html</h1>")
+
+
+@app.get("/daily-top20", response_class=HTMLResponse)
+async def daily_top20_page():
+    """每日 Top20 选股页"""
+    html_path = Path(__file__).parent / "templates" / "daily_top20.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>请先创建 templates/daily_top20.html</h1>")
 
 
 @app.get("/uptrend", response_class=HTMLResponse)
@@ -68,6 +77,21 @@ async def june_backtest_data():
         if path.exists():
             return JSONResponse(content=json.loads(path.read_text(encoding="utf-8")))
     return JSONResponse(status_code=404, content={"message": "暂无回测数据，请先运行 june_top20_backtest.py"})
+
+
+@app.get("/api/daily-top20")
+async def daily_top20_data():
+    """读取每日 Top20 最新快照分析"""
+    import json
+
+    candidates = [
+        STATIC_DIR / "reports" / "daily_top20.json",
+        Path(__file__).parent / "data_cache" / "daily_top20_snapshots" / "latest_analysis.json",
+    ]
+    for path in candidates:
+        if path.exists():
+            return JSONResponse(content=json.loads(path.read_text(encoding="utf-8")))
+    return JSONResponse(status_code=404, content={"message": "暂无每日 Top20 数据，请先运行 daily_top20_pipeline.py --run-once"})
 
 
 @app.get("/api/uptrend/search")

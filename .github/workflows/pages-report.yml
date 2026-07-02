@@ -36,7 +36,7 @@ jobs:
       - name: Build static report if local data is available
         run: |
           if [ -d data_cache/main_uptrend/hist ] && [ -f model_cache/volume_contraction_breakout_5y_tcn.pt ]; then
-            python june_top20_backtest.py --device cpu --fast-rule-only
+            python daily_top20_pipeline.py --run-once --skip-refresh --candidates-file data_cache/daily_top20_snapshots/latest_candidates.csv || true
           else
             echo "Historical cache/model not found in repository; publishing existing static/ report only."
           fi
