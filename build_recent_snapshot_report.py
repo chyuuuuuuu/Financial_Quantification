@@ -182,7 +182,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--start-date", default="2026-06-25")
     parser.add_argument("--top-n", type=int, default=20)
-    parser.add_argument("--forward-days", type=int, default=3)
+    parser.add_argument("--forward-days", type=int, default=1)
     parser.add_argument("--snapshot-dir", default="data_cache/daily_uptrend_predictions")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output-json", default="static/reports/june_top20_backtest.json")

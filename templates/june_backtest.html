@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>6月25日后 Top20 回测</title>
+    <title>6月25日后 Top20 次日回测</title>
     <style>
         :root {
             --bg: #f3f6f8;
@@ -200,7 +200,7 @@
 <div class="shell">
     <div class="topbar">
         <div>
-            <h1>6月25日后 Top20 回测</h1>
+            <h1>6月25日后 Top20 次日回测</h1>
             <div class="sub" id="subtitle">加载中...</div>
         </div>
         <a href="/uptrend">单股分析</a>
@@ -211,15 +211,15 @@
     <div class="cards">
         <div class="card"><div class="k">有效交易日</div><div class="v" id="days">-</div></div>
         <div class="card"><div class="k">Top20 记录</div><div class="v" id="rows">-</div></div>
-        <div class="card"><div class="k">有效收益样本</div><div class="v" id="validRows">-</div></div>
-        <div class="card"><div class="k">收益均值</div><div class="v" id="avg3">-</div></div>
-        <div class="card"><div class="k">收益胜率</div><div class="v" id="win3">-</div></div>
+        <div class="card"><div class="k">次日样本</div><div class="v" id="validRows">-</div></div>
+        <div class="card"><div class="k">次日均值</div><div class="v" id="avg3">-</div></div>
+        <div class="card"><div class="k">次日胜率</div><div class="v" id="win3">-</div></div>
         <div class="card"><div class="k">最佳单票</div><div class="v" id="best">-</div></div>
     </div>
 
     <div class="grid">
         <section class="panel">
-            <h2 id="dailyChartTitle">6月25日后 Top20 平均收益</h2>
+            <h2 id="dailyChartTitle">6月25日后 Top20 平均次日收益</h2>
             <div class="body"><canvas id="dailyChart"></canvas></div>
         </section>
         <section class="panel">
@@ -235,13 +235,13 @@
             <div class="legend">
                 <span><i class="dot" style="background:#15835b"></i> 下跌</span>
                 <span><i class="dot" style="background:#d84a4a"></i> 上涨</span>
-                <span id="heatLegendText">格子数值为当前可用未来收益</span>
+                <span id="heatLegendText">格子数值为次日收盘收益</span>
             </div>
         </div>
     </section>
 
     <section class="panel">
-        <h2>6月25日后 Top20 明细</h2>
+        <h2>6月25日后 Top20 次日明细</h2>
         <div class="body">
             <div class="toolbar">
                 <select id="dateFilter"></select>
@@ -253,8 +253,8 @@
                     <thead>
                     <tr>
                         <th>日期</th><th>排名</th><th>代码</th><th>名称</th><th>信号</th>
-                        <th>分数</th><th>收盘</th><th>1日</th><th>2日</th><th>3日</th>
-                        <th>3日高点</th><th>3日低点</th><th>理由</th>
+                        <th>分数</th><th>收盘</th><th>次日</th><th>次日收益</th>
+                        <th>次日高点</th><th>次日低点</th><th>理由</th>
                     </tr>
                     </thead>
                     <tbody id="rowsBody"></tbody>
@@ -297,7 +297,7 @@ function filterReport(data) {
     topRows.forEach(r => {
         const key = r.signal_type || 'unknown';
         if (!signalMap.has(key)) signalMap.set(key, []);
-        signalMap.get(key).push(Number(r.ret_3d_pct));
+        signalMap.get(key).push(Number(r.ret_1d_pct));
     });
     const signalSummary = [...signalMap.entries()].map(([signal_type, values]) => {
         const valid = values.filter(v => Number.isFinite(v));
@@ -369,10 +369,6 @@ function drawBarLine(canvas, labels, bars, line, opts = {}) {
         });
         ctx.stroke();
     }
-}
-
-function availableHorizon(rows) {
-    return [3, 2, 1].find(days => rows.some(r => Number.isFinite(Number(r[`ret_${days}d_pct`])))) || 3;
 }
 
 function summarizeByDate(rows, retKey) {
@@ -459,11 +455,10 @@ function renderTable(rows) {
             <td>${r.signal_type}</td>
             <td>${fmt(r.final_score)}</td>
             <td>${fmt(r.close)}</td>
+            <td>${r.date_1d || '-'}</td>
             <td class="${cls(r.ret_1d_pct)}">${pct(r.ret_1d_pct)}</td>
-            <td class="${cls(r.ret_2d_pct)}">${pct(r.ret_2d_pct)}</td>
-            <td class="${cls(r.ret_3d_pct)}">${pct(r.ret_3d_pct)}</td>
-            <td class="${cls(r.high_3d_pct)}">${pct(r.high_3d_pct)}</td>
-            <td class="${cls(r.low_3d_pct)}">${pct(r.low_3d_pct)}</td>
+            <td class="${cls(r.high_1d_pct)}">${pct(r.high_1d_pct)}</td>
+            <td class="${cls(r.low_1d_pct)}">${pct(r.low_1d_pct)}</td>
             <td>${r.reason || ''}</td>
         </tr>
     `).join('');
@@ -479,14 +474,13 @@ function fillFilters(data) {
 function render(data) {
     data = filterReport(data);
     const rows = data.top_rows || [];
-    const horizon = availableHorizon(rows);
-    const retKey = `ret_${horizon}d_pct`;
+    const retKey = 'ret_1d_pct';
     const retRows = rows.filter(r => Number.isFinite(Number(r[retKey])));
     const avg = retRows.reduce((s, r) => s + Number(r[retKey]), 0) / Math.max(1, retRows.length);
     const win = retRows.filter(r => Number(r[retKey]) > 0).length / Math.max(1, retRows.length) * 100;
     const best = retRows.slice().sort((a, b) => Number(b[retKey]) - Number(a[retKey]))[0];
     document.getElementById('subtitle').textContent =
-        `${REPORT_START_DATE} 之后，每日 Top${data.top_n}；当前统计口径为未来 ${horizon} 日收益，生成于 ${data.generated_at}`;
+        `${REPORT_START_DATE} 之后，每日 Top${data.top_n}；统计口径为次日收益，7月1日对应7月2日误判收益，生成于 ${data.generated_at}`;
     document.getElementById('days').textContent = data.trading_days.length;
     document.getElementById('rows').textContent = rows.length;
     document.getElementById('validRows').textContent = retRows.length;
@@ -496,8 +490,8 @@ function render(data) {
     document.getElementById('best').textContent = best ? `${best.code} ${pct(best[retKey])}` : '-';
     document.getElementById('best').className = 'v up';
     fillFilters(data);
-    document.getElementById('dailyChartTitle').textContent = `6月25日后 Top20 平均未来 ${horizon} 日收益`;
-    document.getElementById('heatLegendText').textContent = `格子数值为未来 ${horizon} 个可用交易日收盘收益`;
+    document.getElementById('dailyChartTitle').textContent = '6月25日后 Top20 平均次日收益';
+    document.getElementById('heatLegendText').textContent = '格子数值为次日收盘收益';
     renderHeatmap(rows, retKey);
     renderTable(rows);
     const daily = summarizeByDate(rows, retKey);
