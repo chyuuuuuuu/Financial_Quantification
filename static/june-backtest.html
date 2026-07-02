@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六月 Top20 回测</title>
+    <title>6月25日后 Top20 回测</title>
     <style>
         :root {
             --bg: #f3f6f8;
@@ -200,7 +200,7 @@
 <div class="shell">
     <div class="topbar">
         <div>
-            <h1>六月每日 Top20 回测</h1>
+            <h1>6月25日后 Top20 回测</h1>
             <div class="sub" id="subtitle">加载中...</div>
         </div>
         <a href="/uptrend">单股分析</a>
@@ -209,17 +209,17 @@
     <div id="error"></div>
 
     <div class="cards">
-        <div class="card"><div class="k">交易日</div><div class="v" id="days">-</div></div>
+        <div class="card"><div class="k">有效交易日</div><div class="v" id="days">-</div></div>
         <div class="card"><div class="k">Top20 记录</div><div class="v" id="rows">-</div></div>
-        <div class="card"><div class="k">三日均值</div><div class="v" id="avg3">-</div></div>
-        <div class="card"><div class="k">三日胜率</div><div class="v" id="win3">-</div></div>
+        <div class="card"><div class="k">有效收益样本</div><div class="v" id="validRows">-</div></div>
+        <div class="card"><div class="k">收益均值</div><div class="v" id="avg3">-</div></div>
+        <div class="card"><div class="k">收益胜率</div><div class="v" id="win3">-</div></div>
         <div class="card"><div class="k">最佳单票</div><div class="v" id="best">-</div></div>
-        <div class="card"><div class="k">最差单票</div><div class="v" id="worst">-</div></div>
     </div>
 
     <div class="grid">
         <section class="panel">
-            <h2>每日 Top20 平均三日收益</h2>
+            <h2 id="dailyChartTitle">6月25日后 Top20 平均收益</h2>
             <div class="body"><canvas id="dailyChart"></canvas></div>
         </section>
         <section class="panel">
@@ -235,13 +235,13 @@
             <div class="legend">
                 <span><i class="dot" style="background:#15835b"></i> 下跌</span>
                 <span><i class="dot" style="background:#d84a4a"></i> 上涨</span>
-                <span>格子数值为未来 3 个交易日收盘收益</span>
+                <span id="heatLegendText">格子数值为当前可用未来收益</span>
             </div>
         </div>
     </section>
 
     <section class="panel">
-        <h2>Top20 明细</h2>
+        <h2>6月25日后 Top20 明细</h2>
         <div class="body">
             <div class="toolbar">
                 <select id="dateFilter"></select>
@@ -265,6 +265,7 @@
 </div>
 
 <script>
+const REPORT_START_DATE = '2026-06-25';
 const fmt = (v, d = 2) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '-';
 const cls = v => Number(v) > 0 ? 'up' : Number(v) < 0 ? 'down' : 'neutral';
 const pct = v => Number.isFinite(Number(v)) ? `${Number(v).toFixed(2)}%` : '-';
@@ -286,6 +287,35 @@ async function loadData() {
         }
     }
     throw lastError || new Error('无法加载回测数据');
+}
+
+function filterReport(data) {
+    const topRows = (data.top_rows || []).filter(r => String(r.latest_date || '') >= REPORT_START_DATE);
+    const dailySummary = (data.daily_summary || []).filter(r => String(r.date || '') >= REPORT_START_DATE);
+    const activeDates = [...new Set(topRows.map(r => r.latest_date))].sort();
+    const signalMap = new Map();
+    topRows.forEach(r => {
+        const key = r.signal_type || 'unknown';
+        if (!signalMap.has(key)) signalMap.set(key, []);
+        signalMap.get(key).push(Number(r.ret_3d_pct));
+    });
+    const signalSummary = [...signalMap.entries()].map(([signal_type, values]) => {
+        const valid = values.filter(v => Number.isFinite(v));
+        return {
+            signal_type,
+            count: values.length,
+            mean_ret_3d_pct: valid.length ? valid.reduce((s, v) => s + v, 0) / valid.length : null,
+            win_rate_pct: valid.length ? valid.filter(v => v > 0).length / valid.length * 100 : null
+        };
+    });
+    return {
+        ...data,
+        display_start: REPORT_START_DATE,
+        trading_days: activeDates,
+        daily_summary: dailySummary.filter(r => activeDates.includes(r.date)),
+        signal_summary: signalSummary,
+        top_rows: topRows
+    };
 }
 
 function drawBarLine(canvas, labels, bars, line, opts = {}) {
@@ -341,7 +371,44 @@ function drawBarLine(canvas, labels, bars, line, opts = {}) {
     }
 }
 
-function renderHeatmap(rows) {
+function availableHorizon(rows) {
+    return [3, 2, 1].find(days => rows.some(r => Number.isFinite(Number(r[`ret_${days}d_pct`])))) || 3;
+}
+
+function summarizeByDate(rows, retKey) {
+    const map = new Map();
+    rows.forEach(r => {
+        if (!map.has(r.latest_date)) map.set(r.latest_date, []);
+        map.get(r.latest_date).push(Number(r[retKey]));
+    });
+    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, values]) => {
+        const valid = values.filter(v => Number.isFinite(v));
+        return {
+            date,
+            mean: valid.length ? valid.reduce((s, v) => s + v, 0) / valid.length : null,
+            win: valid.length ? valid.filter(v => v > 0).length / valid.length * 100 : null
+        };
+    });
+}
+
+function summarizeBySignal(rows, retKey) {
+    const map = new Map();
+    rows.forEach(r => {
+        const key = r.signal_type || 'unknown';
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(Number(r[retKey]));
+    });
+    return [...map.entries()].map(([signal_type, values]) => {
+        const valid = values.filter(v => Number.isFinite(v));
+        return {
+            signal_type,
+            mean: valid.length ? valid.reduce((s, v) => s + v, 0) / valid.length : null,
+            win: valid.length ? valid.filter(v => v > 0).length / valid.length * 100 : null
+        };
+    });
+}
+
+function renderHeatmap(rows, retKey) {
     const root = document.getElementById('heatmap');
     const byDate = new Map();
     rows.forEach(r => {
@@ -357,7 +424,7 @@ function renderHeatmap(rows) {
         label.textContent = date.slice(5);
         row.appendChild(label);
         items.sort((a, b) => a.rank - b.rank).slice(0, 20).forEach(item => {
-            const v = Number(item.ret_3d_pct);
+            const v = Number(item[retKey]);
             const cell = document.createElement('div');
             cell.className = 'cell';
             const alpha = Math.min(1, Math.abs(v) / 12);
@@ -410,48 +477,51 @@ function fillFilters(data) {
 }
 
 function render(data) {
+    data = filterReport(data);
     const rows = data.top_rows || [];
-    const retRows = rows.filter(r => Number.isFinite(Number(r.ret_3d_pct)));
-    const avg = retRows.reduce((s, r) => s + Number(r.ret_3d_pct), 0) / Math.max(1, retRows.length);
-    const win = retRows.filter(r => Number(r.ret_3d_pct) > 0).length / Math.max(1, retRows.length) * 100;
-    const best = retRows.slice().sort((a, b) => Number(b.ret_3d_pct) - Number(a.ret_3d_pct))[0];
-    const worst = retRows.slice().sort((a, b) => Number(a.ret_3d_pct) - Number(b.ret_3d_pct))[0];
+    const horizon = availableHorizon(rows);
+    const retKey = `ret_${horizon}d_pct`;
+    const retRows = rows.filter(r => Number.isFinite(Number(r[retKey])));
+    const avg = retRows.reduce((s, r) => s + Number(r[retKey]), 0) / Math.max(1, retRows.length);
+    const win = retRows.filter(r => Number(r[retKey]) > 0).length / Math.max(1, retRows.length) * 100;
+    const best = retRows.slice().sort((a, b) => Number(b[retKey]) - Number(a[retKey]))[0];
     document.getElementById('subtitle').textContent =
-        `${data.start} 至 ${data.end}，每日 Top${data.top_n}，向后 ${data.forward_days} 个交易日，生成于 ${data.generated_at}`;
+        `${REPORT_START_DATE} 之后，每日 Top${data.top_n}；当前统计口径为未来 ${horizon} 日收益，生成于 ${data.generated_at}`;
     document.getElementById('days').textContent = data.trading_days.length;
     document.getElementById('rows').textContent = rows.length;
+    document.getElementById('validRows').textContent = retRows.length;
     document.getElementById('avg3').textContent = pct(avg);
     document.getElementById('avg3').className = `v ${cls(avg)}`;
     document.getElementById('win3').textContent = pct(win);
-    document.getElementById('best').textContent = best ? `${best.code} ${pct(best.ret_3d_pct)}` : '-';
+    document.getElementById('best').textContent = best ? `${best.code} ${pct(best[retKey])}` : '-';
     document.getElementById('best').className = 'v up';
-    document.getElementById('worst').textContent = worst ? `${worst.code} ${pct(worst.ret_3d_pct)}` : '-';
-    document.getElementById('worst').className = 'v down';
     fillFilters(data);
-    renderHeatmap(rows);
+    document.getElementById('dailyChartTitle').textContent = `6月25日后 Top20 平均未来 ${horizon} 日收益`;
+    document.getElementById('heatLegendText').textContent = `格子数值为未来 ${horizon} 个可用交易日收盘收益`;
+    renderHeatmap(rows, retKey);
     renderTable(rows);
-    const daily = data.daily_summary || [];
+    const daily = summarizeByDate(rows, retKey);
     drawBarLine(
         document.getElementById('dailyChart'),
         daily.map(r => r.date),
-        daily.map(r => Number(r.mean_ret_3d_pct)),
-        daily.map(r => Number(r.benchmark_mean_3d_pct)),
+        daily.map(r => Number(r.mean)),
+        daily.map(r => Number(r.win) / 10),
         {lineColor: '#2563eb'}
     );
-    const signal = data.signal_summary || [];
+    const signal = summarizeBySignal(rows, retKey);
     drawBarLine(
         document.getElementById('signalChart'),
         signal.map(r => r.signal_type.replace('_', ' ')),
-        signal.map(r => Number(r.mean_ret_3d_pct)),
-        signal.map(r => Number(r.win_rate_pct) / 10),
+        signal.map(r => Number(r.mean)),
+        signal.map(r => Number(r.win) / 10),
         {lineColor: '#b7791f'}
     );
     ['dateFilter', 'signalFilter', 'search'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => renderTable(rows));
     });
     window.addEventListener('resize', () => {
-        drawBarLine(document.getElementById('dailyChart'), daily.map(r => r.date), daily.map(r => Number(r.mean_ret_3d_pct)), daily.map(r => Number(r.benchmark_mean_3d_pct)));
-        drawBarLine(document.getElementById('signalChart'), signal.map(r => r.signal_type.replace('_', ' ')), signal.map(r => Number(r.mean_ret_3d_pct)), signal.map(r => Number(r.win_rate_pct) / 10), {lineColor: '#b7791f'});
+        drawBarLine(document.getElementById('dailyChart'), daily.map(r => r.date), daily.map(r => Number(r.mean)), daily.map(r => Number(r.win) / 10));
+        drawBarLine(document.getElementById('signalChart'), signal.map(r => r.signal_type.replace('_', ' ')), signal.map(r => Number(r.mean)), signal.map(r => Number(r.win) / 10), {lineColor: '#b7791f'});
     });
 }
 
