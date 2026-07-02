@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>6月25日后 Top20 次日回测</title>
+    <title>逐日 Top20 次日回测</title>
     <style>
         :root {
             --bg: #f3f6f8;
@@ -200,7 +200,7 @@
 <div class="shell">
     <div class="topbar">
         <div>
-            <h1>6月25日后 Top20 次日回测</h1>
+            <h1>逐日 Top20 次日回测</h1>
             <div class="sub" id="subtitle">加载中...</div>
         </div>
         <a href="/uptrend">单股分析</a>
@@ -219,7 +219,7 @@
 
     <div class="grid">
         <section class="panel">
-            <h2 id="dailyChartTitle">6月25日后 Top20 平均次日收益</h2>
+            <h2 id="dailyChartTitle">每日 Top20 平均次日收益</h2>
             <div class="body"><canvas id="dailyChart"></canvas></div>
         </section>
         <section class="panel">
@@ -241,7 +241,7 @@
     </section>
 
     <section class="panel">
-        <h2>6月25日后 Top20 次日明细</h2>
+        <h2>每日 Top20 次日明细</h2>
         <div class="body">
             <div class="toolbar">
                 <select id="dateFilter"></select>
@@ -265,7 +265,7 @@
 </div>
 
 <script>
-const REPORT_START_DATE = '2026-06-25';
+const REPORT_START_DATE = '2026-06-20';
 const fmt = (v, d = 2) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '-';
 const cls = v => Number(v) > 0 ? 'up' : Number(v) < 0 ? 'down' : 'neutral';
 const pct = v => Number.isFinite(Number(v)) ? `${Number(v).toFixed(2)}%` : '-';
@@ -480,7 +480,7 @@ function render(data) {
     const win = retRows.filter(r => Number(r[retKey]) > 0).length / Math.max(1, retRows.length) * 100;
     const best = retRows.slice().sort((a, b) => Number(b[retKey]) - Number(a[retKey]))[0];
     document.getElementById('subtitle').textContent =
-        `${REPORT_START_DATE} 之后，每日 Top${data.top_n}；统计口径为次日收益，7月1日对应7月2日误判收益，生成于 ${data.generated_at}`;
+        `${REPORT_START_DATE} 之后可用交易日，每日重新读取行情并计算 Top${data.top_n}；统计口径为次日收益，7月1日对应7月2日误判收益，生成于 ${data.generated_at}`;
     document.getElementById('days').textContent = data.trading_days.length;
     document.getElementById('rows').textContent = rows.length;
     document.getElementById('validRows').textContent = retRows.length;
@@ -490,7 +490,7 @@ function render(data) {
     document.getElementById('best').textContent = best ? `${best.code} ${pct(best[retKey])}` : '-';
     document.getElementById('best').className = 'v up';
     fillFilters(data);
-    document.getElementById('dailyChartTitle').textContent = '6月25日后 Top20 平均次日收益';
+    document.getElementById('dailyChartTitle').textContent = '每日 Top20 平均次日收益';
     document.getElementById('heatLegendText').textContent = '格子数值为次日收盘收益';
     renderHeatmap(rows, retKey);
     renderTable(rows);

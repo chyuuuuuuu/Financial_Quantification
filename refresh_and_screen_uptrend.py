@@ -402,6 +402,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--progress-every", type=int, default=200)
     parser.add_argument("--candidate-min-amount", type=float, default=50_000_000)
     parser.add_argument("--skip-current", action="store_true", default=True)
+    parser.add_argument("--no-skip-current", dest="skip_current", action="store_false")
     parser.add_argument("--quote-only", action="store_true", default=False)
     parser.add_argument("--quote-batch-size", type=int, default=60)
     parser.add_argument("--quote-sleep", type=float, default=0.15)
