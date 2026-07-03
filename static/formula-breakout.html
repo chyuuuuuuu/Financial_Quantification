@@ -387,6 +387,40 @@
         </div>
     </section>
 
+    <section class="panel" id="top3TradePanel" hidden>
+        <h2>Top3 十年交易明细</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">持仓笔数</div><div class="v" id="top3TradeCount">-</div></div>
+                <div class="card"><div class="k">已卖出</div><div class="v" id="top3TradeClosed">-</div></div>
+                <div class="card"><div class="k">持仓中</div><div class="v" id="top3TradeOpen">-</div></div>
+                <div class="card"><div class="k">股票数</div><div class="v" id="top3TradeStocks">-</div></div>
+                <div class="card"><div class="k">已实现盈亏</div><div class="v" id="top3TradePnl">-</div></div>
+                <div class="card"><div class="k">交易费用</div><div class="v" id="top3TradeFees">-</div></div>
+            </div>
+            <div class="toolbar">
+                <input id="top3TradeSearch" placeholder="代码或名称">
+                <select id="top3TradeStatus">
+                    <option value="all">全部</option>
+                    <option value="closed">已卖出</option>
+                    <option value="open">持仓中</option>
+                </select>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>序号</th><th>代码</th><th>名称</th><th>买入日</th><th>卖出日</th><th>状态</th>
+                        <th>持仓天数</th><th>股数</th><th>买入价</th><th>卖出价</th><th>买入排名</th>
+                        <th>评分</th><th>总费用</th><th>盈亏</th><th>收益率</th><th>卖出原因</th>
+                    </tr>
+                    </thead>
+                    <tbody id="top3TradeBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel">
         <h2>当日入选</h2>
         <div class="body">
@@ -458,6 +492,7 @@ let top2Backtest = null;
 let top1Backtest = null;
 let topSlotsLimitBacktest = null;
 let top3TenYearBacktest = null;
+let top3TradeBacktest = null;
 
 async function fetchJson(url) {
     const res = await fetch(url, { cache: 'no-store' });
@@ -561,6 +596,17 @@ async function loadTop3TenYearBacktest() {
         try { return await fetchJson(url); }
         catch (err) {
             // Top3 ten-year report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTop3TradeBacktest() {
+    const urls = ['./reports/formula_breakout_top3_10y_trades.json', '/static/reports/formula_breakout_top3_10y_trades.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Trade detail report is optional while the page is being generated.
         }
     }
     return null;
@@ -1052,6 +1098,46 @@ function renderTop3TenYearBacktest(data) {
     `).join('');
 }
 
+function renderTop3Trades() {
+    const data = top3TradeBacktest;
+    if (!data || !Array.isArray(data.trades)) return;
+    document.getElementById('top3TradePanel').hidden = false;
+    const s = data.summary || {};
+    setText('top3TradeCount', s.trade_count ?? data.trades.length);
+    setText('top3TradeClosed', s.closed_count ?? 0);
+    setText('top3TradeOpen', s.open_count ?? 0);
+    setText('top3TradeStocks', s.stock_count ?? 0);
+    setText('top3TradePnl', fmt(s.total_pnl_closed, 0), pctClass(s.total_pnl_closed));
+    setText('top3TradeFees', fmt(s.total_fee, 0), 'down');
+
+    const q = document.getElementById('top3TradeSearch')?.value.trim() || '';
+    const status = document.getElementById('top3TradeStatus')?.value || 'all';
+    let rows = data.trades.slice();
+    if (q) rows = rows.filter(r => String(r.code || '').includes(q) || String(r.name || '').includes(q));
+    if (status !== 'all') rows = rows.filter(r => r.status === status);
+    rows.sort((a, b) => String(b.buy_date || '').localeCompare(String(a.buy_date || '')) || Number(b.lot_id || 0) - Number(a.lot_id || 0));
+    document.getElementById('top3TradeBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${r.lot_id ?? '-'}</td>
+            <td>${esc(r.code) || '-'}</td>
+            <td>${esc(r.name) || '-'}</td>
+            <td>${esc(r.buy_date) || '-'}</td>
+            <td>${esc(r.sell_date) || '-'}</td>
+            <td>${r.status === 'open' ? '持仓中' : '已卖出'}</td>
+            <td>${r.holding_days ?? '-'}</td>
+            <td>${r.shares ?? '-'}</td>
+            <td>${fmt(r.buy_price, 2)}</td>
+            <td>${r.sell_price == null ? '-' : fmt(r.sell_price, 2)}</td>
+            <td>${r.buy_rank ?? '-'}</td>
+            <td>${fmt(r.formula_score, 2)}</td>
+            <td>${fmt(r.total_fee, 0)}</td>
+            <td class="${pctClass(r.pnl)}">${r.pnl == null ? '-' : fmt(r.pnl, 0)}</td>
+            <td class="${pctClass(r.ret_pct)}">${r.ret_pct == null ? '-' : `${fmt(r.ret_pct, 2)}%`}</td>
+            <td class="reason" title="${esc(r.sell_reason)}">${esc(r.sell_reason) || '-'}</td>
+        </tr>
+    `).join('');
+}
+
 function renderSelected() {
     const q = document.getElementById('search').value.trim();
     const mode = document.getElementById('sortMode').value;
@@ -1112,7 +1198,7 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top3TenYearBacktest] = await Promise.all([
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top3TenYearBacktest, top3TradeBacktest] = await Promise.all([
             loadData(),
             loadDateIndex(),
             loadBacktest(),
@@ -1121,6 +1207,7 @@ async function init() {
             loadTop1Backtest(),
             loadTopSlotsLimitBacktest(),
             loadTop3TenYearBacktest(),
+            loadTop3TradeBacktest(),
         ]);
         selectedRows = payload.selected_rows || [];
         setupDateControls();
@@ -1133,10 +1220,13 @@ async function init() {
         renderTop1Backtest(top1Backtest);
         renderTopSlotsLimitBacktest(topSlotsLimitBacktest);
         renderTop3TenYearBacktest(top3TenYearBacktest);
+        renderTop3Trades();
         renderSelected();
         renderFeedback(payload.feedback_rows || []);
         document.getElementById('search').addEventListener('input', renderSelected);
         document.getElementById('sortMode').addEventListener('change', renderSelected);
+        document.getElementById('top3TradeSearch')?.addEventListener('input', renderTop3Trades);
+        document.getElementById('top3TradeStatus')?.addEventListener('change', renderTop3Trades);
     } catch (err) {
         document.getElementById('error').innerHTML = `<div class="error">加载失败：${err.message}</div>`;
     }
