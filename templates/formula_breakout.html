@@ -329,6 +329,34 @@
         </div>
     </section>
 
+    <section class="panel" id="topSlotsLimitPanel" hidden>
+        <h2>Top1~Top5 封单过滤对比</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">最优利润档位</div><div class="v" id="limitBestSlot">-</div></div>
+                <div class="card"><div class="k">最高盈利</div><div class="v" id="limitBestProfit">-</div></div>
+                <div class="card"><div class="k">最高收益率</div><div class="v" id="limitBestReturn">-</div></div>
+                <div class="card"><div class="k">对应总支出</div><div class="v" id="limitBestCosts">-</div></div>
+                <div class="card"><div class="k">封单跳过</div><div class="v" id="limitBlockedTotal">-</div></div>
+                <div class="card"><div class="k">回测区间</div><div class="v" id="limitRange">-</div></div>
+                <div class="card"><div class="k">数据源</div><div class="v" id="limitSource">-</div></div>
+            </div>
+            <canvas id="topSlotsLimitChart"></canvas>
+            <div class="table-wrap">
+                <table class="compact-table">
+                    <thead>
+                    <tr>
+                        <th>档位</th><th>最终权益</th><th>清仓权益</th><th>盈利</th><th>收益率</th><th>最大回撤</th>
+                        <th>总支出</th><th>佣金</th><th>印花税</th><th>过户费</th><th>估算清仓费</th>
+                        <th>买/卖</th><th>封单跳过</th><th>满仓天数</th><th>平均持仓</th>
+                    </tr>
+                    </thead>
+                    <tbody id="topSlotsLimitBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel">
         <h2>当日入选</h2>
         <div class="body">
@@ -398,6 +426,7 @@ let backtest = null;
 let cashBacktest = null;
 let top2Backtest = null;
 let top1Backtest = null;
+let topSlotsLimitBacktest = null;
 
 async function fetchJson(url) {
     const res = await fetch(url, { cache: 'no-store' });
@@ -479,6 +508,17 @@ async function loadTop1Backtest() {
         try { return await fetchJson(url); }
         catch (err) {
             // Top1 backtest report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTopSlotsLimitBacktest() {
+    const urls = ['./reports/formula_breakout_top1_to_top5_limit_backtest_1y.json', '/static/reports/formula_breakout_top1_to_top5_limit_backtest_1y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Limit-up blocked Top1-Top5 report is optional while the page is being generated.
         }
     }
     return null;
@@ -851,6 +891,92 @@ function renderTop1Backtest(data) {
     `).join('');
 }
 
+function renderTopSlotsLimitChart(data) {
+    const rows = (data?.rows || []).filter(r => Number.isFinite(Number(r.profit)));
+    const canvas = document.getElementById('topSlotsLimitChart');
+    const ctx = canvas.getContext('2d');
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(320, Math.floor(rect.width * ratio));
+    canvas.height = Math.max(220, Math.floor(rect.height * ratio));
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    const pad = { left: 58, right: 18, top: 18, bottom: 36 };
+    const w = rect.width - pad.left - pad.right;
+    const h = rect.height - pad.top - pad.bottom;
+    ctx.strokeStyle = '#dbe3eb';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + h);
+    ctx.lineTo(pad.left + w, pad.top + h);
+    ctx.stroke();
+    if (!rows.length) return;
+    const vals = rows.map(r => Number(r.profit));
+    const minV = Math.min(0, ...vals);
+    const maxV = Math.max(1, ...vals);
+    const span = Math.max(100, maxV - minV);
+    const zeroY = pad.top + h - ((0 - minV) / span) * h;
+    ctx.strokeStyle = '#aeb9c7';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, zeroY);
+    ctx.lineTo(pad.left + w, zeroY);
+    ctx.stroke();
+    const gap = w / rows.length;
+    rows.forEach((r, i) => {
+        const v = Number(r.profit);
+        const x = pad.left + i * gap + gap * 0.18;
+        const bw = Math.max(24, gap * 0.64);
+        const y = pad.top + h - ((v - minV) / span) * h;
+        ctx.fillStyle = v >= 0 ? '#d94b4b' : '#14845d';
+        ctx.fillRect(x, Math.min(y, zeroY), bw, Math.max(2, Math.abs(zeroY - y)));
+        ctx.fillStyle = '#657387';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(String(r.label || `Top${r.slots}`), x + 2, pad.top + h + 22);
+        ctx.fillText(`${(v / 10000).toFixed(1)}万`, x - 4, Math.min(y, zeroY) - 5);
+    });
+    ctx.fillStyle = '#657387';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(maxV.toFixed(0), 8, pad.top + 5);
+    ctx.fillText(minV.toFixed(0), 8, pad.top + h);
+}
+
+function renderTopSlotsLimitBacktest(data) {
+    if (!data || !Array.isArray(data.rows) || !data.rows.length) return;
+    document.getElementById('topSlotsLimitPanel').hidden = false;
+    const rows = data.rows.slice().sort((a, b) => Number(a.slots) - Number(b.slots));
+    const best = rows.reduce((acc, r) => Number(r.profit) > Number(acc.profit) ? r : acc, rows[0]);
+    const blockedTotal = rows.reduce((sum, r) => sum + Number(r.blocked_limit_up_buys || 0), 0);
+    const bestCosts = Number(best.total_costs_with_estimated_exit ?? best.total_fees);
+    const source = data.buy_block_rule?.limit_up_source === 'zt_pool' ? '东方财富封单' : '日线近似';
+    setText('limitBestSlot', best.label || `Top${best.slots}`);
+    setText('limitBestProfit', fmt(best.profit, 0), pctClass(best.profit));
+    setText('limitBestReturn', `${fmt(best.return_pct, 2)}%`, pctClass(best.return_pct));
+    setText('limitBestCosts', fmt(bestCosts, 0), 'down');
+    setText('limitBlockedTotal', blockedTotal);
+    setText('limitRange', `${data.start_date || '-'}~${data.end_date || '-'}`);
+    setText('limitSource', source);
+    renderTopSlotsLimitChart(data);
+    document.getElementById('topSlotsLimitBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${esc(r.label) || `Top${r.slots}`}</td>
+            <td>${fmt(r.final_equity, 0)}</td>
+            <td>${fmt(r.final_liquidation_equity, 0)}</td>
+            <td class="${pctClass(r.profit)}">${fmt(r.profit, 0)}</td>
+            <td class="${pctClass(r.return_pct)}">${fmt(r.return_pct, 2)}%</td>
+            <td class="${pctClass(r.max_drawdown_pct)}">${fmt(r.max_drawdown_pct, 2)}%</td>
+            <td>${fmt(r.total_costs_with_estimated_exit ?? r.total_fees, 0)}</td>
+            <td>${fmt(r.total_commission, 0)}</td>
+            <td>${fmt(r.total_stamp_tax, 0)}</td>
+            <td>${fmt(r.total_transfer_fee, 0)}</td>
+            <td>${fmt(r.estimated_open_sell_fees, 0)}</td>
+            <td>${r.total_buys ?? 0}/${r.total_sells ?? 0}</td>
+            <td>${r.blocked_limit_up_buys ?? 0}</td>
+            <td>${r.full_slot_days ?? 0}</td>
+            <td>${fmt(r.avg_holdings_count, 2)}</td>
+        </tr>
+    `).join('');
+}
+
 function renderSelected() {
     const q = document.getElementById('search').value.trim();
     const mode = document.getElementById('sortMode').value;
@@ -911,13 +1037,14 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest] = await Promise.all([
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest] = await Promise.all([
             loadData(),
             loadDateIndex(),
             loadBacktest(),
             loadCashBacktest(),
             loadTop2Backtest(),
             loadTop1Backtest(),
+            loadTopSlotsLimitBacktest(),
         ]);
         selectedRows = payload.selected_rows || [];
         setupDateControls();
@@ -928,6 +1055,7 @@ async function init() {
         renderCashBacktest(cashBacktest);
         renderTop2Backtest(top2Backtest);
         renderTop1Backtest(top1Backtest);
+        renderTopSlotsLimitBacktest(topSlotsLimitBacktest);
         renderSelected();
         renderFeedback(payload.feedback_rows || []);
         document.getElementById('search').addEventListener('input', renderSelected);
@@ -943,6 +1071,7 @@ window.addEventListener('resize', () => {
     if (cashBacktest) renderCashBacktestChart(cashBacktest);
     if (top2Backtest) renderEquityChart(top2Backtest, 'top2BacktestChart', '#2563eb');
     if (top1Backtest) renderEquityChart(top1Backtest, 'top1BacktestChart', '#a76813');
+    if (topSlotsLimitBacktest) renderTopSlotsLimitChart(topSlotsLimitBacktest);
 });
 init();
 </script>

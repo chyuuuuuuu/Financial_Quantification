@@ -36,6 +36,7 @@ cp formula_breakout_pipeline.py "$DEPLOY_REPO/formula_breakout_pipeline.py"
 cp formula_breakout_backtest.py "$DEPLOY_REPO/formula_breakout_backtest.py"
 cp formula_breakout_cash_backtest.py "$DEPLOY_REPO/formula_breakout_cash_backtest.py"
 cp formula_breakout_top2_backtest.py "$DEPLOY_REPO/formula_breakout_top2_backtest.py"
+cp formula_breakout_top_slots_limit_backtest.py "$DEPLOY_REPO/formula_breakout_top_slots_limit_backtest.py"
 cp app.py "$DEPLOY_REPO/app.py"
 cp templates/daily_top20.html "$DEPLOY_REPO/templates/daily_top20.html"
 cp templates/formula_breakout.html "$DEPLOY_REPO/templates/formula_breakout.html"
@@ -54,6 +55,7 @@ git -C "$DEPLOY_REPO" add \
   formula_breakout_backtest.py \
   formula_breakout_cash_backtest.py \
   formula_breakout_top2_backtest.py \
+  formula_breakout_top_slots_limit_backtest.py \
   app.py \
   templates/daily_top20.html \
   templates/formula_breakout.html \
