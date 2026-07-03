@@ -1,0 +1,243 @@
+{
+  "generated_at": "2026-07-03T12:16:33",
+  "dates": [
+    {
+      "date": "2026-07-02",
+      "file": "formula_breakout_20260702.json",
+      "selected_count": 8,
+      "avg_formula_score": 89.6098,
+      "generated_at": "2026-07-03T12:16:33"
+    },
+    {
+      "date": "2026-07-01",
+      "file": "formula_breakout_20260701.json",
+      "selected_count": 19,
+      "avg_formula_score": 88.7321,
+      "generated_at": "2026-07-03T12:16:33"
+    },
+    {
+      "date": "2026-06-30",
+      "file": "formula_breakout_20260630.json",
+      "selected_count": 3,
+      "avg_formula_score": 94.065,
+      "generated_at": "2026-07-03T12:16:33"
+    },
+    {
+      "date": "2026-06-29",
+      "file": "formula_breakout_20260629.json",
+      "selected_count": 11,
+      "avg_formula_score": 96.6964,
+      "generated_at": "2026-07-03T12:16:32"
+    },
+    {
+      "date": "2026-06-26",
+      "file": "formula_breakout_20260626.json",
+      "selected_count": 1,
+      "avg_formula_score": 99.363,
+      "generated_at": "2026-07-03T12:16:32"
+    },
+    {
+      "date": "2026-06-25",
+      "file": "formula_breakout_20260625.json",
+      "selected_count": 4,
+      "avg_formula_score": 84.1855,
+      "generated_at": "2026-07-03T12:16:32"
+    },
+    {
+      "date": "2026-06-24",
+      "file": "formula_breakout_20260624.json",
+      "selected_count": 2,
+      "avg_formula_score": 92.8245,
+      "generated_at": "2026-07-03T12:16:32"
+    },
+    {
+      "date": "2026-06-23",
+      "file": "formula_breakout_20260623.json",
+      "selected_count": 3,
+      "avg_formula_score": 73.4493,
+      "generated_at": "2026-07-03T12:16:32"
+    },
+    {
+      "date": "2026-06-22",
+      "file": "formula_breakout_20260622.json",
+      "selected_count": 12,
+      "avg_formula_score": 93.6571,
+      "generated_at": "2026-07-03T12:16:31"
+    },
+    {
+      "date": "2026-06-19",
+      "file": "formula_breakout_20260619.json",
+      "selected_count": 0,
+      "avg_formula_score": null,
+      "generated_at": "2026-07-03T12:16:31"
+    },
+    {
+      "date": "2026-06-18",
+      "file": "formula_breakout_20260618.json",
+      "selected_count": 6,
+      "avg_formula_score": 88.2345,
+      "generated_at": "2026-07-03T12:16:31"
+    },
+    {
+      "date": "2026-06-17",
+      "file": "formula_breakout_20260617.json",
+      "selected_count": 2,
+      "avg_formula_score": 89.3185,
+      "generated_at": "2026-07-03T12:16:31"
+    },
+    {
+      "date": "2026-06-16",
+      "file": "formula_breakout_20260616.json",
+      "selected_count": 12,
+      "avg_formula_score": 87.0258,
+      "generated_at": "2026-07-03T12:16:31"
+    },
+    {
+      "date": "2026-06-15",
+      "file": "formula_breakout_20260615.json",
+      "selected_count": 12,
+      "avg_formula_score": 83.2606,
+      "generated_at": "2026-07-03T12:16:31"
+    },
+    {
+      "date": "2026-06-12",
+      "file": "formula_breakout_20260612.json",
+      "selected_count": 5,
+      "avg_formula_score": 83.7746,
+      "generated_at": "2026-07-03T12:16:31"
+    },
+    {
+      "date": "2026-06-11",
+      "file": "formula_breakout_20260611.json",
+      "selected_count": 1,
+      "avg_formula_score": 82.288,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-10",
+      "file": "formula_breakout_20260610.json",
+      "selected_count": 7,
+      "avg_formula_score": 85.0199,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-09",
+      "file": "formula_breakout_20260609.json",
+      "selected_count": 9,
+      "avg_formula_score": 88.0203,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-08",
+      "file": "formula_breakout_20260608.json",
+      "selected_count": 2,
+      "avg_formula_score": 82.7865,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-05",
+      "file": "formula_breakout_20260605.json",
+      "selected_count": 7,
+      "avg_formula_score": 88.2244,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-04",
+      "file": "formula_breakout_20260604.json",
+      "selected_count": 2,
+      "avg_formula_score": 90.7965,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-03",
+      "file": "formula_breakout_20260603.json",
+      "selected_count": 6,
+      "avg_formula_score": 83.0577,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-02",
+      "file": "formula_breakout_20260602.json",
+      "selected_count": 6,
+      "avg_formula_score": 81.2653,
+      "generated_at": "2026-07-03T12:16:30"
+    },
+    {
+      "date": "2026-06-01",
+      "file": "formula_breakout_20260601.json",
+      "selected_count": 9,
+      "avg_formula_score": 85.3606,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-29",
+      "file": "formula_breakout_20260529.json",
+      "selected_count": 6,
+      "avg_formula_score": 82.7755,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-28",
+      "file": "formula_breakout_20260528.json",
+      "selected_count": 4,
+      "avg_formula_score": 81.5242,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-27",
+      "file": "formula_breakout_20260527.json",
+      "selected_count": 5,
+      "avg_formula_score": 84.9028,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-26",
+      "file": "formula_breakout_20260526.json",
+      "selected_count": 8,
+      "avg_formula_score": 82.1209,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-25",
+      "file": "formula_breakout_20260525.json",
+      "selected_count": 12,
+      "avg_formula_score": 89.6992,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-22",
+      "file": "formula_breakout_20260522.json",
+      "selected_count": 16,
+      "avg_formula_score": 85.7834,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-21",
+      "file": "formula_breakout_20260521.json",
+      "selected_count": 5,
+      "avg_formula_score": 93.976,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-20",
+      "file": "formula_breakout_20260520.json",
+      "selected_count": 6,
+      "avg_formula_score": 92.0672,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-19",
+      "file": "formula_breakout_20260519.json",
+      "selected_count": 16,
+      "avg_formula_score": 86.5856,
+      "generated_at": "2026-07-03T12:16:29"
+    },
+    {
+      "date": "2026-05-18",
+      "file": "formula_breakout_20260518.json",
+      "selected_count": 13,
+      "avg_formula_score": 80.3062,
+      "generated_at": "2026-07-03T12:16:29"
+    }
+  ]
+}

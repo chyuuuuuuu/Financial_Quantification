@@ -36,6 +36,13 @@ BASE_COLUMNS = [
     "amount",
     "volume",
     "formula_score",
+    "base_score",
+    "contraction_score",
+    "triple_score",
+    "timing_score",
+    "macd_score",
+    "breakout_score",
+    "heat_penalty",
     "triple_date",
     "triple_close",
     "triple_volume",
@@ -233,7 +240,8 @@ def evaluate_formula(
     macd_score = max(0.0, min(12.0, (safe_float(dif.iloc[i]) - safe_float(dea.iloc[i])) / triple_close * 1200.0))
     breakout_score = max(0.0, min(10.0, breakout_gap * 2.0))
     heat_penalty = max(0.0, min(8.0, max_close_vs_triple - 8.0))
-    score = round(45.0 + contraction_score + triple_score + timing_score + macd_score + breakout_score - heat_penalty, 3)
+    base_score = 45.0
+    score = round(base_score + contraction_score + triple_score + timing_score + macd_score + breakout_score - heat_penalty, 3)
 
     return {
         "code": code,
@@ -247,6 +255,13 @@ def evaluate_formula(
         "amount": round(safe_float(amount.iloc[i]), 2),
         "volume": round(safe_float(volume.iloc[i]), 2),
         "formula_score": score,
+        "base_score": round(base_score, 3),
+        "contraction_score": round(contraction_score, 3),
+        "triple_score": round(triple_score, 3),
+        "timing_score": round(timing_score, 3),
+        "macd_score": round(macd_score, 3),
+        "breakout_score": round(breakout_score, 3),
+        "heat_penalty": round(heat_penalty, 3),
         "triple_date": pd.Timestamp(date.iloc[j]).strftime("%Y-%m-%d"),
         "triple_close": round(triple_close, 4),
         "triple_volume": round(triple_volume, 2),
@@ -395,6 +410,36 @@ def daily_feedback(feedback: pd.DataFrame) -> List[Dict[str, object]]:
     return clean_records(grouped.sort_values("snapshot_date"))
 
 
+def refresh_static_index(static_dir: Path) -> None:
+    reports_dir = static_dir / "reports"
+    rows: List[Dict[str, object]] = []
+    for path in sorted(reports_dir.glob("formula_breakout_*.json")):
+        if path.name == "formula_breakout_index.json":
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        snapshot_date = str(payload.get("snapshot_date") or "")
+        if not snapshot_date:
+            continue
+        rows.append(
+            {
+                "date": snapshot_date,
+                "file": path.name,
+                "selected_count": int(payload.get("selected_count") or 0),
+                "avg_formula_score": payload.get("avg_formula_score"),
+                "generated_at": payload.get("generated_at"),
+            }
+        )
+    rows = sorted({item["date"]: item for item in rows}.values(), key=lambda item: item["date"], reverse=True)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "formula_breakout_index.json").write_text(
+        json.dumps({"generated_at": datetime.now().isoformat(timespec="seconds"), "dates": rows}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
 def build_analysis(args: argparse.Namespace, run_time: datetime, selected: pd.DataFrame, feedback: pd.DataFrame) -> Dict[str, object]:
     recent_feedback = feedback.sort_values("snapshot_time").tail(args.feedback_window) if not feedback.empty else pd.DataFrame()
     selected_display = selected.head(args.display_limit).copy()
@@ -428,15 +473,17 @@ def build_analysis(args: argparse.Namespace, run_time: datetime, selected: pd.Da
     }
 
 
-def write_static_report(analysis: Dict[str, object], args: argparse.Namespace) -> None:
+def write_static_report(analysis: Dict[str, object], args: argparse.Namespace, update_latest: bool = True) -> None:
     static_dir = Path(args.static_dir)
     reports_dir = static_dir / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(analysis, ensure_ascii=False, indent=2)
-    (reports_dir / "formula_breakout.json").write_text(payload, encoding="utf-8")
+    if update_latest:
+        (reports_dir / "formula_breakout.json").write_text(payload, encoding="utf-8")
     date_key = compact_date(analysis.get("snapshot_date"))
     if date_key:
         (reports_dir / f"formula_breakout_{date_key}.json").write_text(payload, encoding="utf-8")
+    refresh_static_index(static_dir)
     template = Path(args.template)
     if template.exists():
         html = template.read_text(encoding="utf-8")
@@ -454,8 +501,9 @@ def run_once(args: argparse.Namespace, run_time: Optional[datetime] = None) -> D
     analysis = build_analysis(args, run_time, selected, feedback)
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "analysis.json").write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8")
-    Path(args.snapshot_dir, "latest_analysis.json").write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_static_report(analysis, args)
+    if not args.archive_only:
+        Path(args.snapshot_dir, "latest_analysis.json").write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8")
+    write_static_report(analysis, args, update_latest=not args.archive_only)
     print(f"[{now_text()}] formula selected={len(selected)} saved under {run_dir}")
     return analysis
 
@@ -492,6 +540,7 @@ def replay(args: argparse.Namespace) -> None:
             if item is not None:
                 rows_by_date[d].append(item)
 
+    selected_by_date: Dict[str, pd.DataFrame] = {}
     for d in dates:
         target = datetime.strptime(d, "%Y-%m-%d").replace(hour=args.schedule_hour, minute=args.schedule_minute)
         selected = pd.DataFrame(rows_by_date[d])
@@ -500,15 +549,16 @@ def replay(args: argparse.Namespace) -> None:
         else:
             selected = selected.sort_values(["formula_score", "amount"], ascending=False).reset_index(drop=True)
             selected.insert(0, "rank", np.arange(1, len(selected) + 1))
-        save_snapshot(selected, args, target, Path(args.run_dir) / stamp(target))
+        selected_by_date[d] = save_snapshot(selected, args, target, Path(args.run_dir) / stamp(target))
         print(f"[{now_text()}] replay {d}: selected={len(selected)}")
     feedback = update_feedback(args)
-    latest_time = datetime.strptime(dates[-1], "%Y-%m-%d").replace(hour=args.schedule_hour, minute=args.schedule_minute) if dates else datetime.now()
-    latest_selected_path = Path(args.snapshot_dir) / "latest_selected.csv"
-    latest_selected = pd.read_csv(latest_selected_path, dtype={"code": str}) if latest_selected_path.exists() else pd.DataFrame()
-    analysis = build_analysis(args, latest_time, latest_selected, feedback)
-    Path(args.snapshot_dir, "latest_analysis.json").write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_static_report(analysis, args)
+    for d in dates:
+        target = datetime.strptime(d, "%Y-%m-%d").replace(hour=args.schedule_hour, minute=args.schedule_minute)
+        analysis = build_analysis(args, target, selected_by_date.get(d, pd.DataFrame(columns=BASE_COLUMNS)), feedback)
+        update_latest = (not args.archive_only) and d == dates[-1]
+        if update_latest:
+            Path(args.snapshot_dir, "latest_analysis.json").write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8")
+        write_static_report(analysis, args, update_latest=update_latest)
 
 
 def daemon(args: argparse.Namespace) -> None:
@@ -538,6 +588,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--replay", action="store_true")
     parser.add_argument("--daemon", action="store_true")
     parser.add_argument("--print-cron", action="store_true")
+    parser.add_argument("--archive-only", action="store_true")
     parser.add_argument("--target-date", default="")
     parser.add_argument("--replay-start", default="")
     parser.add_argument("--replay-end", default="")
