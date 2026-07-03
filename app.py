@@ -104,18 +104,28 @@ async def daily_top20_data():
 
 
 @app.get("/api/formula-breakout")
-async def formula_breakout_data():
+async def formula_breakout_data(date: str = ""):
     """读取公式 Port 最新快照和回测"""
     import json
 
+    date_key = ""
+    if date:
+        try:
+            from pandas import Timestamp
+
+            date_key = Timestamp(str(date)[:10]).strftime("%Y%m%d")
+        except Exception:
+            date_key = "".join(ch for ch in str(date) if ch.isdigit())[:8]
+
     candidates = [
-        STATIC_DIR / "reports" / "formula_breakout.json",
-        Path(__file__).parent / "data_cache" / "formula_breakout_snapshots" / "latest_analysis.json",
+        STATIC_DIR / "reports" / f"formula_breakout_{date_key}.json" if date_key else None,
+        STATIC_DIR / "reports" / "formula_breakout.json" if not date_key else None,
+        Path(__file__).parent / "data_cache" / "formula_breakout_snapshots" / "latest_analysis.json" if not date_key else None,
     ]
     for path in candidates:
-        if path.exists():
+        if path and path.exists():
             return JSONResponse(content=json.loads(path.read_text(encoding="utf-8")))
-    return JSONResponse(status_code=404, content={"message": "暂无公式 Port 数据，请先运行 formula_breakout_pipeline.py --run-once"})
+    return JSONResponse(status_code=404, content={"message": "暂无公式 Port 数据，请先运行 formula_breakout_pipeline.py --run-once 或生成对应日期归档"})
 
 
 @app.get("/api/uptrend/search")

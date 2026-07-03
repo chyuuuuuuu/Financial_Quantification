@@ -85,6 +85,13 @@ def stamp(run_time: datetime) -> str:
     return run_time.strftime("%Y%m%d_%H%M")
 
 
+def compact_date(value: object) -> str:
+    try:
+        return pd.Timestamp(str(value)[:10]).strftime("%Y%m%d")
+    except Exception:
+        return ""
+
+
 def next_run_time(hour: int, minute: int, now: Optional[datetime] = None) -> datetime:
     now = now or datetime.now()
     target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
@@ -425,7 +432,11 @@ def write_static_report(analysis: Dict[str, object], args: argparse.Namespace) -
     static_dir = Path(args.static_dir)
     reports_dir = static_dir / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
-    (reports_dir / "formula_breakout.json").write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8")
+    payload = json.dumps(analysis, ensure_ascii=False, indent=2)
+    (reports_dir / "formula_breakout.json").write_text(payload, encoding="utf-8")
+    date_key = compact_date(analysis.get("snapshot_date"))
+    if date_key:
+        (reports_dir / f"formula_breakout_{date_key}.json").write_text(payload, encoding="utf-8")
     template = Path(args.template)
     if template.exists():
         html = template.read_text(encoding="utf-8")
