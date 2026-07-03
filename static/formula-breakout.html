@@ -246,9 +246,11 @@
         <div class="body">
             <div class="backtest-cards">
                 <div class="card"><div class="k">最终权益</div><div class="v" id="cashFinal">-</div></div>
+                <div class="card"><div class="k">清仓权益</div><div class="v" id="cashLiquidation">-</div></div>
                 <div class="card"><div class="k">盈利</div><div class="v" id="cashProfit">-</div></div>
                 <div class="card"><div class="k">收益率</div><div class="v" id="cashReturn">-</div></div>
                 <div class="card"><div class="k">最大回撤</div><div class="v" id="cashDrawdown">-</div></div>
+                <div class="card"><div class="k">总费用</div><div class="v" id="cashFees">-</div></div>
                 <div class="card"><div class="k">买入/卖出</div><div class="v" id="cashTrades">-</div></div>
                 <div class="card"><div class="k">持仓手数</div><div class="v" id="cashOpenLots">-</div></div>
                 <div class="card"><div class="k">剩余现金</div><div class="v" id="cashRemain">-</div></div>
@@ -259,7 +261,7 @@
                     <thead>
                     <tr>
                         <th>日期</th><th>入选</th><th>买入</th><th>卖出</th><th>跳过</th>
-                        <th>现金</th><th>持仓市值</th><th>总权益</th><th>日收益</th>
+                        <th>现金</th><th>持仓市值</th><th>总权益</th><th>日收益</th><th>费用</th>
                         <th>持仓数</th><th>操作摘要</th>
                     </tr>
                     </thead>
@@ -626,9 +628,11 @@ function renderCashBacktest(data) {
     document.getElementById('cashBacktestPanel').hidden = false;
     const s = data.summary;
     setText('cashFinal', fmt(s.final_equity, 0));
+    setText('cashLiquidation', fmt(s.final_liquidation_equity, 0), pctClass(s.liquidation_profit));
     setText('cashProfit', fmt(s.profit, 0), pctClass(s.profit));
     setText('cashReturn', `${fmt(s.return_pct, 2)}%`, pctClass(s.return_pct));
     setText('cashDrawdown', `${fmt(s.max_drawdown_pct, 2)}%`, pctClass(s.max_drawdown_pct));
+    setText('cashFees', fmt(s.total_fees, 0), 'down');
     setText('cashTrades', `${s.total_buys ?? 0}/${s.total_sells ?? 0}`);
     setText('cashOpenLots', s.open_lots ?? 0);
     setText('cashRemain', fmt(s.final_cash, 0));
@@ -645,6 +649,7 @@ function renderCashBacktest(data) {
             <td>${fmt(r.market_value, 0)}</td>
             <td>${fmt(r.equity, 0)}</td>
             <td class="${pctClass(r.daily_ret_pct)}">${fmt(r.daily_ret_pct, 2)}%</td>
+            <td>${fmt(r.fees_paid_day, 0)}</td>
             <td>${r.holdings_count ?? 0}</td>
             <td class="reason" title="${esc(r.operations)}">${esc(r.operations) || '-'}</td>
         </tr>
