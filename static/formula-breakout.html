@@ -357,6 +357,36 @@
         </div>
     </section>
 
+    <section class="panel" id="top3TenYearPanel" hidden>
+        <h2>Top3 十年回测</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">最终权益</div><div class="v" id="top3TenFinal">-</div></div>
+                <div class="card"><div class="k">清仓权益</div><div class="v" id="top3TenLiquidation">-</div></div>
+                <div class="card"><div class="k">总盈利</div><div class="v" id="top3TenProfit">-</div></div>
+                <div class="card"><div class="k">总收益率</div><div class="v" id="top3TenReturn">-</div></div>
+                <div class="card"><div class="k">最大回撤</div><div class="v" id="top3TenDrawdown">-</div></div>
+                <div class="card"><div class="k">总费用</div><div class="v" id="top3TenFees">-</div></div>
+                <div class="card"><div class="k">封单跳过</div><div class="v" id="top3TenBlocked">-</div></div>
+                <div class="card"><div class="k">封单覆盖</div><div class="v" id="top3TenSealCoverage">-</div></div>
+                <div class="card"><div class="k">历史覆盖</div><div class="v" id="top3TenHistoryCoverage">-</div></div>
+            </div>
+            <div class="sub" id="top3TenNote">-</div>
+            <canvas id="top3TenYearChart"></canvas>
+            <div class="table-wrap">
+                <table class="compact-table">
+                    <thead>
+                    <tr>
+                        <th>年份</th><th>年初权益</th><th>年末权益</th><th>年度盈利</th><th>年度收益率</th>
+                        <th>费用</th><th>买/卖</th><th>封单跳过</th><th>交易日</th>
+                    </tr>
+                    </thead>
+                    <tbody id="top3TenYearBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel">
         <h2>当日入选</h2>
         <div class="body">
@@ -427,6 +457,7 @@ let cashBacktest = null;
 let top2Backtest = null;
 let top1Backtest = null;
 let topSlotsLimitBacktest = null;
+let top3TenYearBacktest = null;
 
 async function fetchJson(url) {
     const res = await fetch(url, { cache: 'no-store' });
@@ -519,6 +550,17 @@ async function loadTopSlotsLimitBacktest() {
         try { return await fetchJson(url); }
         catch (err) {
             // Limit-up blocked Top1-Top5 report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTop3TenYearBacktest() {
+    const urls = ['./reports/formula_breakout_top3_limit_backtest_10y.json', '/static/reports/formula_breakout_top3_limit_backtest_10y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Top3 ten-year report is optional while the page is being generated.
         }
     }
     return null;
@@ -977,6 +1019,39 @@ function renderTopSlotsLimitBacktest(data) {
     `).join('');
 }
 
+function renderTop3TenYearBacktest(data) {
+    if (!data || !data.summary) return;
+    document.getElementById('top3TenYearPanel').hidden = false;
+    const s = data.summary;
+    const c = data.coverage || {};
+    setText('top3TenFinal', fmt(s.final_equity, 0));
+    setText('top3TenLiquidation', fmt(s.final_liquidation_equity, 0), pctClass(s.liquidation_profit));
+    setText('top3TenProfit', fmt(s.profit, 0), pctClass(s.profit));
+    setText('top3TenReturn', `${fmt(s.return_pct, 2)}%`, pctClass(s.return_pct));
+    setText('top3TenDrawdown', `${fmt(s.max_drawdown_pct, 2)}%`, pctClass(s.max_drawdown_pct));
+    setText('top3TenFees', fmt(s.total_fees, 0), 'down');
+    setText('top3TenBlocked', s.blocked_limit_up_buys ?? 0);
+    setText('top3TenSealCoverage', `${s.limit_up_pool_nonempty_days ?? 0}/${s.trading_days ?? 0}`);
+    setText('top3TenHistoryCoverage', `${c.history_covered_to_2016_count ?? '-'} / ${c.universe_count ?? '-'}`);
+    const limitations = Array.isArray(data.limitations) ? data.limitations.join(' ') : '';
+    document.getElementById('top3TenNote').textContent = limitations || 'Top3 满仓轮动，三槽等分资金，按收盘价成交。';
+    renderEquityChart(data, 'top3TenYearChart', '#7c3aed');
+    const rows = data.yearly || [];
+    document.getElementById('top3TenYearBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${esc(r.year) || '-'}</td>
+            <td>${fmt(r.starting_equity, 0)}</td>
+            <td>${fmt(r.ending_equity, 0)}</td>
+            <td class="${pctClass(r.profit)}">${fmt(r.profit, 0)}</td>
+            <td class="${pctClass(r.year_ret_pct)}">${fmt(r.year_ret_pct, 2)}%</td>
+            <td>${fmt(r.fees_paid, 0)}</td>
+            <td>${r.buy_count ?? 0}/${r.sell_count ?? 0}</td>
+            <td>${r.limit_up_skip_count ?? 0}</td>
+            <td>${r.trading_days ?? 0}</td>
+        </tr>
+    `).join('');
+}
+
 function renderSelected() {
     const q = document.getElementById('search').value.trim();
     const mode = document.getElementById('sortMode').value;
@@ -1037,7 +1112,7 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest] = await Promise.all([
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top3TenYearBacktest] = await Promise.all([
             loadData(),
             loadDateIndex(),
             loadBacktest(),
@@ -1045,6 +1120,7 @@ async function init() {
             loadTop2Backtest(),
             loadTop1Backtest(),
             loadTopSlotsLimitBacktest(),
+            loadTop3TenYearBacktest(),
         ]);
         selectedRows = payload.selected_rows || [];
         setupDateControls();
@@ -1056,6 +1132,7 @@ async function init() {
         renderTop2Backtest(top2Backtest);
         renderTop1Backtest(top1Backtest);
         renderTopSlotsLimitBacktest(topSlotsLimitBacktest);
+        renderTop3TenYearBacktest(top3TenYearBacktest);
         renderSelected();
         renderFeedback(payload.feedback_rows || []);
         document.getElementById('search').addEventListener('input', renderSelected);
@@ -1072,6 +1149,7 @@ window.addEventListener('resize', () => {
     if (top2Backtest) renderEquityChart(top2Backtest, 'top2BacktestChart', '#2563eb');
     if (top1Backtest) renderEquityChart(top1Backtest, 'top1BacktestChart', '#a76813');
     if (topSlotsLimitBacktest) renderTopSlotsLimitChart(topSlotsLimitBacktest);
+    if (top3TenYearBacktest) renderEquityChart(top3TenYearBacktest, 'top3TenYearChart', '#7c3aed');
 });
 init();
 </script>

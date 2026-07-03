@@ -38,6 +38,9 @@ def build_comparison(reports: List[Dict[str, object]]) -> Dict[str, object]:
             "total_buys": summary["total_buys"],  # type: ignore[index]
             "total_sells": summary["total_sells"],  # type: ignore[index]
             "blocked_limit_up_buys": summary["blocked_limit_up_buys"],  # type: ignore[index]
+            "limit_up_pool_requested_days": summary.get("limit_up_pool_requested_days"),  # type: ignore[attr-defined]
+            "limit_up_pool_nonempty_days": summary.get("limit_up_pool_nonempty_days"),  # type: ignore[attr-defined]
+            "limit_up_pool_skipped_no_source_days": summary.get("limit_up_pool_skipped_no_source_days"),  # type: ignore[attr-defined]
             "open_lots": summary["open_lots"],  # type: ignore[index]
             "full_slot_days": summary["full_slot_days"],  # type: ignore[index]
             "avg_holdings_count": summary["avg_holdings_count"],  # type: ignore[index]
@@ -77,6 +80,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--limit-up-pool-dir", default="data_cache/formula_breakout_backtests/zt_pool_em")
+    parser.add_argument("--limit-up-data-start-date", default="")
     parser.add_argument("--refresh-limit-up-pool", action="store_true")
     parser.add_argument("--min-seal-amount", type=float, default=1.0)
     parser.add_argument("--limit-up-pct", type=float, default=9.8)
@@ -106,6 +110,7 @@ def main() -> None:
         block_limit_up_buys=True,
         limit_up_source="zt_pool",
         limit_up_pool_dir=args.limit_up_pool_dir,
+        limit_up_data_start_date=args.limit_up_data_start_date,
         refresh_limit_up_pool=args.refresh_limit_up_pool,
         min_seal_amount=args.min_seal_amount,
         limit_up_pct=args.limit_up_pct,

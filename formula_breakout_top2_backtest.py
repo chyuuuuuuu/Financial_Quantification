@@ -85,16 +85,24 @@ def normalize_zt_pool_date(date_text: str) -> str:
 
 
 def load_limit_up_pool_for_date(date_text: str, args: argparse.Namespace) -> Dict[str, Dict[str, object]]:
+    data_start = str(getattr(args, "limit_up_data_start_date", "") or "").strip()
+    if data_start and pd.Timestamp(date_text) < pd.Timestamp(data_start):
+        return {}
     cache_dir = Path(args.limit_up_pool_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
     date_key = normalize_zt_pool_date(date_text)
     path = cache_dir / f"{date_key}.csv"
     if path.exists() and not getattr(args, "refresh_limit_up_pool", False):
-        df = pd.read_csv(path, dtype={"代码": str})
+        try:
+            df = pd.read_csv(path, dtype={"代码": str})
+        except pd.errors.EmptyDataError:
+            df = pd.DataFrame()
     else:
         import akshare as ak  # Lazy import so normal local backtests do not require network data.
 
         df = ak.stock_zt_pool_em(date=date_key)
+        if df.empty:
+            df = pd.DataFrame(columns=["代码", "名称", "封板资金", "首次封板时间", "最后封板时间", "炸板次数", "涨停统计", "连板数"])
         df.to_csv(path, index=False, encoding="utf-8-sig")
 
     pool: Dict[str, Dict[str, object]] = {}
@@ -199,6 +207,18 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     limit_up_pools = getattr(args, "_limit_up_pools", None)
     if limit_up_pools is None:
         limit_up_pools = load_limit_up_pools(market_dates, args)
+    data_start = str(getattr(args, "limit_up_data_start_date", "") or "").strip()
+    skipped_limit_source_days = (
+        int(sum(1 for date_text in market_dates if pd.Timestamp(date_text) < pd.Timestamp(data_start)))
+        if data_start and getattr(args, "block_limit_up_buys", False) and args.limit_up_source == "zt_pool"
+        else 0
+    )
+    requested_limit_source_days = (
+        len(market_dates) - skipped_limit_source_days
+        if getattr(args, "block_limit_up_buys", False) and args.limit_up_source == "zt_pool"
+        else 0
+    )
+    nonempty_limit_source_days = int(sum(1 for pool in limit_up_pools.values() if pool)) if limit_up_pools else 0
 
     cash = float(args.initial_cash)
     holdings: List[SlotHolding] = []
@@ -461,6 +481,38 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     for col in ["ending_equity", "avg_daily_ret_pct", "month_ret_pct"]:
         monthly[col] = pd.to_numeric(monthly[col], errors="coerce").round(4)
 
+    daily_df["year"] = daily_df["date"].str.slice(0, 4)
+    yearly = daily_df.groupby("year", as_index=False).agg(
+        trading_days=("date", "count"),
+        buy_count=("buy_count", "sum"),
+        sell_count=("sell_count", "sum"),
+        selected_count=("selected_count", "sum"),
+        limit_up_skip_count=("limit_up_skip_count", "sum"),
+        fees_paid=("fees_paid_day", "sum"),
+        ending_equity=("equity", "last"),
+        avg_daily_ret_pct=("daily_ret_pct", "mean"),
+        min_equity=("equity", "min"),
+        max_equity=("equity", "max"),
+    )
+    yearly["year_ret_pct"] = (
+        daily_df.groupby("year")["daily_ret_pct"]
+        .apply(lambda x: ((1.0 + x / 100.0).prod() - 1.0) * 100.0)
+        .values
+    )
+    yearly["starting_equity"] = yearly["ending_equity"] / (1.0 + yearly["year_ret_pct"] / 100.0)
+    yearly["profit"] = yearly["ending_equity"] - yearly["starting_equity"]
+    for col in [
+        "fees_paid",
+        "ending_equity",
+        "avg_daily_ret_pct",
+        "min_equity",
+        "max_equity",
+        "year_ret_pct",
+        "starting_equity",
+        "profit",
+    ]:
+        yearly[col] = pd.to_numeric(yearly[col], errors="coerce").round(4)
+
     full_slot_days = int(sum(1 for row in daily_rows if row["holdings_count"] >= args.slots))
     summary = {
         "initial_cash": round(float(args.initial_cash), 2),
@@ -486,6 +538,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "total_buys": total_buys,
         "total_sells": total_sells,
         "blocked_limit_up_buys": total_limit_up_skips,
+        "limit_up_pool_requested_days": requested_limit_source_days,
+        "limit_up_pool_nonempty_days": nonempty_limit_source_days,
+        "limit_up_pool_skipped_no_source_days": skipped_limit_source_days,
         "open_lots": len(open_holdings),
         "closed_win_rate_pct": round_or_none((closed > 0).mean() * 100.0 if not closed.empty else None, 2),
         "avg_closed_ret_pct": round_or_none(closed.mean() if not closed.empty else None, 4),
@@ -532,6 +587,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
             "limit_up_source": args.limit_up_source,
             "limit_up_pool_dir": args.limit_up_pool_dir,
+            "limit_up_data_start_date": str(getattr(args, "limit_up_data_start_date", "") or ""),
             "min_seal_amount": float(args.min_seal_amount),
             "limit_up_pct": float(args.limit_up_pct),
             "limit_close_high_ratio": float(args.limit_close_high_ratio),
@@ -550,6 +606,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "summary": summary,
         "daily": daily_rows,
         "monthly": clean_records(monthly),
+        "yearly": clean_records(yearly),
         "operations": operations_by_day,
         "open_holdings": open_holdings,
         "signals_total": int(len(signals)),
@@ -584,6 +641,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--block-limit-up-buys", action="store_true")
     parser.add_argument("--limit-up-source", choices=["zt_pool", "daily"], default="zt_pool")
     parser.add_argument("--limit-up-pool-dir", default="data_cache/formula_breakout_backtests/zt_pool_em")
+    parser.add_argument("--limit-up-data-start-date", default="")
     parser.add_argument("--refresh-limit-up-pool", action="store_true")
     parser.add_argument("--min-seal-amount", type=float, default=1.0)
     parser.add_argument("--limit-up-pct", type=float, default=9.8)
