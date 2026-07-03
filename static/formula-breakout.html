@@ -271,6 +271,35 @@
         </div>
     </section>
 
+    <section class="panel" id="top2BacktestPanel" hidden>
+        <h2>Top2 满仓对比</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">最终权益</div><div class="v" id="top2Final">-</div></div>
+                <div class="card"><div class="k">清仓权益</div><div class="v" id="top2Liquidation">-</div></div>
+                <div class="card"><div class="k">盈利</div><div class="v" id="top2Profit">-</div></div>
+                <div class="card"><div class="k">收益率</div><div class="v" id="top2Return">-</div></div>
+                <div class="card"><div class="k">最大回撤</div><div class="v" id="top2Drawdown">-</div></div>
+                <div class="card"><div class="k">总费用</div><div class="v" id="top2Fees">-</div></div>
+                <div class="card"><div class="k">对一手差值</div><div class="v" id="top2Delta">-</div></div>
+                <div class="card"><div class="k">买入/卖出</div><div class="v" id="top2Trades">-</div></div>
+                <div class="card"><div class="k">双持天数</div><div class="v" id="top2HoldDays">-</div></div>
+            </div>
+            <canvas id="top2BacktestChart"></canvas>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>日期</th><th>买入</th><th>卖出</th><th>现金</th><th>持仓市值</th>
+                        <th>总权益</th><th>日收益</th><th>费用</th><th>持仓数</th><th>操作摘要</th>
+                    </tr>
+                    </thead>
+                    <tbody id="top2DailyBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel">
         <h2>当日入选</h2>
         <div class="body">
@@ -338,6 +367,7 @@ let selectedRows = [];
 let dateIndex = [];
 let backtest = null;
 let cashBacktest = null;
+let top2Backtest = null;
 
 async function fetchJson(url) {
     const res = await fetch(url, { cache: 'no-store' });
@@ -397,6 +427,17 @@ async function loadCashBacktest() {
         try { return await fetchJson(url); }
         catch (err) {
             // Cash backtest report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTop2Backtest() {
+    const urls = ['./reports/formula_breakout_top2_backtest_1y.json', '/static/reports/formula_breakout_top2_backtest_1y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Top2 backtest report is optional while the page is being generated.
         }
     }
     return null;
@@ -656,6 +697,84 @@ function renderCashBacktest(data) {
     `).join('');
 }
 
+function renderEquityChart(data, canvasId, color) {
+    const rows = (data?.daily || []).filter(r => Number.isFinite(Number(r.equity)));
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(320, Math.floor(rect.width * ratio));
+    canvas.height = Math.max(220, Math.floor(rect.height * ratio));
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    const pad = { left: 54, right: 16, top: 18, bottom: 34 };
+    const w = rect.width - pad.left - pad.right;
+    const h = rect.height - pad.top - pad.bottom;
+    ctx.strokeStyle = '#dbe3eb';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + h);
+    ctx.lineTo(pad.left + w, pad.top + h);
+    ctx.stroke();
+    if (rows.length < 2) return;
+    const vals = rows.map(r => Number(r.equity));
+    const minV = Math.min(...vals, Number(data.initial_cash || 50000));
+    const maxV = Math.max(...vals, Number(data.initial_cash || 50000));
+    const span = Math.max(100, maxV - minV);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    rows.forEach((r, i) => {
+        const x = pad.left + (i / (rows.length - 1)) * w;
+        const y = pad.top + h - ((Number(r.equity) - minV) / span) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.fillStyle = '#657387';
+    ctx.font = '11px sans-serif';
+    const marks = [0, Math.floor(rows.length / 2), rows.length - 1];
+    marks.forEach(i => {
+        const x = pad.left + (i / (rows.length - 1)) * w;
+        ctx.fillText(String(rows[i].date).slice(5), x - 14, pad.top + h + 20);
+    });
+    ctx.fillText(maxV.toFixed(0), 8, pad.top + 5);
+    ctx.fillText(minV.toFixed(0), 8, pad.top + h);
+}
+
+function renderTop2Backtest(data) {
+    if (!data || !data.summary) return;
+    document.getElementById('top2BacktestPanel').hidden = false;
+    const s = data.summary;
+    const base = cashBacktest?.summary || {};
+    const delta = Number(s.final_equity) - Number(base.final_equity);
+    setText('top2Final', fmt(s.final_equity, 0));
+    setText('top2Liquidation', fmt(s.final_liquidation_equity, 0), pctClass(s.liquidation_profit));
+    setText('top2Profit', fmt(s.profit, 0), pctClass(s.profit));
+    setText('top2Return', `${fmt(s.return_pct, 2)}%`, pctClass(s.return_pct));
+    setText('top2Drawdown', `${fmt(s.max_drawdown_pct, 2)}%`, pctClass(s.max_drawdown_pct));
+    setText('top2Fees', fmt(s.total_fees, 0), 'down');
+    setText('top2Delta', Number.isFinite(delta) ? fmt(delta, 0) : '-', pctClass(delta));
+    setText('top2Trades', `${s.total_buys ?? 0}/${s.total_sells ?? 0}`);
+    setText('top2HoldDays', `${s.two_holding_days ?? 0}/${s.trading_days ?? 0}`);
+    renderEquityChart(data, 'top2BacktestChart', '#2563eb');
+    const rows = (data.daily || []).slice().reverse();
+    document.getElementById('top2DailyBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${esc(r.date) || '-'}</td>
+            <td>${r.buy_count ?? 0}</td>
+            <td>${r.sell_count ?? 0}</td>
+            <td>${fmt(r.cash_end, 0)}</td>
+            <td>${fmt(r.market_value, 0)}</td>
+            <td>${fmt(r.equity, 0)}</td>
+            <td class="${pctClass(r.daily_ret_pct)}">${fmt(r.daily_ret_pct, 2)}%</td>
+            <td>${fmt(r.fees_paid_day, 0)}</td>
+            <td>${r.holdings_count ?? 0}</td>
+            <td class="reason" title="${esc(r.operations)}">${esc(r.operations) || '-'}</td>
+        </tr>
+    `).join('');
+}
+
 function renderSelected() {
     const q = document.getElementById('search').value.trim();
     const mode = document.getElementById('sortMode').value;
@@ -716,7 +835,13 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest] = await Promise.all([loadData(), loadDateIndex(), loadBacktest(), loadCashBacktest()]);
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest] = await Promise.all([
+            loadData(),
+            loadDateIndex(),
+            loadBacktest(),
+            loadCashBacktest(),
+            loadTop2Backtest(),
+        ]);
         selectedRows = payload.selected_rows || [];
         setupDateControls();
         renderCards(payload);
@@ -724,6 +849,7 @@ async function init() {
         renderChart(payload);
         renderBacktest(backtest);
         renderCashBacktest(cashBacktest);
+        renderTop2Backtest(top2Backtest);
         renderSelected();
         renderFeedback(payload.feedback_rows || []);
         document.getElementById('search').addEventListener('input', renderSelected);
@@ -737,6 +863,7 @@ window.addEventListener('resize', () => {
     if (payload) renderChart(payload);
     if (backtest) renderBacktestChart(backtest);
     if (cashBacktest) renderCashBacktestChart(cashBacktest);
+    if (top2Backtest) renderEquityChart(top2Backtest, 'top2BacktestChart', '#2563eb');
 });
 init();
 </script>
