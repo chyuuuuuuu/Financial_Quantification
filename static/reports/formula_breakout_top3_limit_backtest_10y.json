@@ -30661,5 +30661,6 @@
       "unrealized_ret_pct": 3.1527
     }
   ],
-  "signals_total": 30138
+  "signals_total": 30138,
+  "publish_revision": "2026-07-03-retry1"
 }
