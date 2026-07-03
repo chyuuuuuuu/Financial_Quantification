@@ -300,6 +300,35 @@
         </div>
     </section>
 
+    <section class="panel" id="top1BacktestPanel" hidden>
+        <h2>Top1 满仓对比</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">最终权益</div><div class="v" id="top1Final">-</div></div>
+                <div class="card"><div class="k">清仓权益</div><div class="v" id="top1Liquidation">-</div></div>
+                <div class="card"><div class="k">盈利</div><div class="v" id="top1Profit">-</div></div>
+                <div class="card"><div class="k">收益率</div><div class="v" id="top1Return">-</div></div>
+                <div class="card"><div class="k">最大回撤</div><div class="v" id="top1Drawdown">-</div></div>
+                <div class="card"><div class="k">总费用</div><div class="v" id="top1Fees">-</div></div>
+                <div class="card"><div class="k">对Top2差值</div><div class="v" id="top1DeltaTop2">-</div></div>
+                <div class="card"><div class="k">对一手差值</div><div class="v" id="top1DeltaCash">-</div></div>
+                <div class="card"><div class="k">买入/卖出</div><div class="v" id="top1Trades">-</div></div>
+            </div>
+            <canvas id="top1BacktestChart"></canvas>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>日期</th><th>买入</th><th>卖出</th><th>现金</th><th>持仓市值</th>
+                        <th>总权益</th><th>日收益</th><th>费用</th><th>持仓数</th><th>操作摘要</th>
+                    </tr>
+                    </thead>
+                    <tbody id="top1DailyBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel">
         <h2>当日入选</h2>
         <div class="body">
@@ -368,6 +397,7 @@ let dateIndex = [];
 let backtest = null;
 let cashBacktest = null;
 let top2Backtest = null;
+let top1Backtest = null;
 
 async function fetchJson(url) {
     const res = await fetch(url, { cache: 'no-store' });
@@ -438,6 +468,17 @@ async function loadTop2Backtest() {
         try { return await fetchJson(url); }
         catch (err) {
             // Top2 backtest report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTop1Backtest() {
+    const urls = ['./reports/formula_breakout_top1_backtest_1y.json', '/static/reports/formula_breakout_top1_backtest_1y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Top1 backtest report is optional while the page is being generated.
         }
     }
     return null;
@@ -775,6 +816,41 @@ function renderTop2Backtest(data) {
     `).join('');
 }
 
+function renderTop1Backtest(data) {
+    if (!data || !data.summary) return;
+    document.getElementById('top1BacktestPanel').hidden = false;
+    const s = data.summary;
+    const top2 = top2Backtest?.summary || {};
+    const oneHand = cashBacktest?.summary || {};
+    const deltaTop2 = Number(s.final_equity) - Number(top2.final_equity);
+    const deltaCash = Number(s.final_equity) - Number(oneHand.final_equity);
+    setText('top1Final', fmt(s.final_equity, 0));
+    setText('top1Liquidation', fmt(s.final_liquidation_equity, 0), pctClass(s.liquidation_profit));
+    setText('top1Profit', fmt(s.profit, 0), pctClass(s.profit));
+    setText('top1Return', `${fmt(s.return_pct, 2)}%`, pctClass(s.return_pct));
+    setText('top1Drawdown', `${fmt(s.max_drawdown_pct, 2)}%`, pctClass(s.max_drawdown_pct));
+    setText('top1Fees', fmt(s.total_fees, 0), 'down');
+    setText('top1DeltaTop2', Number.isFinite(deltaTop2) ? fmt(deltaTop2, 0) : '-', pctClass(deltaTop2));
+    setText('top1DeltaCash', Number.isFinite(deltaCash) ? fmt(deltaCash, 0) : '-', pctClass(deltaCash));
+    setText('top1Trades', `${s.total_buys ?? 0}/${s.total_sells ?? 0}`);
+    renderEquityChart(data, 'top1BacktestChart', '#a76813');
+    const rows = (data.daily || []).slice().reverse();
+    document.getElementById('top1DailyBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${esc(r.date) || '-'}</td>
+            <td>${r.buy_count ?? 0}</td>
+            <td>${r.sell_count ?? 0}</td>
+            <td>${fmt(r.cash_end, 0)}</td>
+            <td>${fmt(r.market_value, 0)}</td>
+            <td>${fmt(r.equity, 0)}</td>
+            <td class="${pctClass(r.daily_ret_pct)}">${fmt(r.daily_ret_pct, 2)}%</td>
+            <td>${fmt(r.fees_paid_day, 0)}</td>
+            <td>${r.holdings_count ?? 0}</td>
+            <td class="reason" title="${esc(r.operations)}">${esc(r.operations) || '-'}</td>
+        </tr>
+    `).join('');
+}
+
 function renderSelected() {
     const q = document.getElementById('search').value.trim();
     const mode = document.getElementById('sortMode').value;
@@ -835,12 +911,13 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest, top2Backtest] = await Promise.all([
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest] = await Promise.all([
             loadData(),
             loadDateIndex(),
             loadBacktest(),
             loadCashBacktest(),
             loadTop2Backtest(),
+            loadTop1Backtest(),
         ]);
         selectedRows = payload.selected_rows || [];
         setupDateControls();
@@ -850,6 +927,7 @@ async function init() {
         renderBacktest(backtest);
         renderCashBacktest(cashBacktest);
         renderTop2Backtest(top2Backtest);
+        renderTop1Backtest(top1Backtest);
         renderSelected();
         renderFeedback(payload.feedback_rows || []);
         document.getElementById('search').addEventListener('input', renderSelected);
@@ -864,6 +942,7 @@ window.addEventListener('resize', () => {
     if (backtest) renderBacktestChart(backtest);
     if (cashBacktest) renderCashBacktestChart(cashBacktest);
     if (top2Backtest) renderEquityChart(top2Backtest, 'top2BacktestChart', '#2563eb');
+    if (top1Backtest) renderEquityChart(top1Backtest, 'top1BacktestChart', '#a76813');
 });
 init();
 </script>

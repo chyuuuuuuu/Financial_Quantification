@@ -330,6 +330,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     for col in ["ending_equity", "avg_daily_ret_pct", "month_ret_pct"]:
         monthly[col] = pd.to_numeric(monthly[col], errors="coerce").round(4)
 
+    full_slot_days = int(sum(1 for row in daily_rows if row["holdings_count"] >= args.slots))
     summary = {
         "initial_cash": round(float(args.initial_cash), 2),
         "final_equity": round(final_equity, 2),
@@ -362,14 +363,16 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "signal_days": int(sum(1 for row in daily_rows if row["selected_count"] > 0)),
         "buy_days": int(sum(1 for row in daily_rows if row["buy_count"] > 0)),
         "sell_days": int(sum(1 for row in daily_rows if row["sell_count"] > 0)),
-        "two_holding_days": int(sum(1 for row in daily_rows if row["holdings_count"] >= args.slots)),
+        "full_slot_days": full_slot_days,
+        "two_holding_days": full_slot_days,
         "avg_holdings_count": round(float(pd.Series([row["holdings_count"] for row in daily_rows]).mean()), 4),
     }
 
+    slot_label = f"Top{int(args.slots)}"
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "port": "formula_breakout_top2_backtest",
-        "strategy_name": "公式选股Top2满仓轮动",
+        "port": f"formula_breakout_top{int(args.slots)}_backtest",
+        "strategy_name": f"公式选股{slot_label}满仓轮动",
         "start_date": start.strftime("%Y-%m-%d"),
         "end_date": end.strftime("%Y-%m-%d"),
         "universe_count": universe_count,
