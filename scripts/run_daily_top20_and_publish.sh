@@ -43,6 +43,7 @@ cp static/daily-top20.html "$DEPLOY_REPO/static/daily-top20.html"
 cp static/formula-breakout.html "$DEPLOY_REPO/static/formula-breakout.html"
 cp static/reports/daily_top20.json "$DEPLOY_REPO/static/reports/daily_top20.json"
 cp static/reports/formula_breakout.json "$DEPLOY_REPO/static/reports/formula_breakout.json"
+cp static/reports/formula_breakout_*.json "$DEPLOY_REPO/static/reports/"
 
 git -C "$DEPLOY_REPO" add \
   daily_top20_pipeline.py \
@@ -56,7 +57,8 @@ git -C "$DEPLOY_REPO" add \
   static/daily-top20.html \
   static/formula-breakout.html \
   static/reports/daily_top20.json \
-  static/reports/formula_breakout.json
+  static/reports/formula_breakout.json \
+  static/reports/formula_breakout_*.json
 
 if git -C "$DEPLOY_REPO" diff --cached --quiet; then
   echo "[$(date '+%F %T')] no public report changes to publish"
