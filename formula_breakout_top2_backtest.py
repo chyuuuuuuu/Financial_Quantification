@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Two-slot full-position backtest for the formula breakout selector."""
+"""N-slot full-position backtest for the formula breakout selector."""
 
 from __future__ import annotations
 
@@ -69,6 +69,91 @@ def max_affordable_shares(price: float, budget: float, args: argparse.Namespace)
     return 0, 0.0, fee_breakdown(0.0, "buy", args)
 
 
+def signal_float(signal: object, field: str) -> float:
+    try:
+        value = getattr(signal, field)
+    except AttributeError:
+        return float("nan")
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float("nan")
+
+
+def normalize_zt_pool_date(date_text: str) -> str:
+    return str(date_text)[:10].replace("-", "")
+
+
+def load_limit_up_pool_for_date(date_text: str, args: argparse.Namespace) -> Dict[str, Dict[str, object]]:
+    cache_dir = Path(args.limit_up_pool_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    date_key = normalize_zt_pool_date(date_text)
+    path = cache_dir / f"{date_key}.csv"
+    if path.exists() and not getattr(args, "refresh_limit_up_pool", False):
+        df = pd.read_csv(path, dtype={"代码": str})
+    else:
+        import akshare as ak  # Lazy import so normal local backtests do not require network data.
+
+        df = ak.stock_zt_pool_em(date=date_key)
+        df.to_csv(path, index=False, encoding="utf-8-sig")
+
+    pool: Dict[str, Dict[str, object]] = {}
+    if df.empty:
+        return pool
+    for row in df.to_dict(orient="records"):
+        code = normalize_code(row.get("代码"))
+        if not code:
+            continue
+        seal_amount = float(pd.to_numeric(pd.Series([row.get("封板资金")]), errors="coerce").iloc[0] or 0.0)
+        if seal_amount < float(args.min_seal_amount):
+            continue
+        pool[code] = {
+            "seal_amount": seal_amount,
+            "first_limit_time": row.get("首次封板时间"),
+            "last_limit_time": row.get("最后封板时间"),
+            "break_count": row.get("炸板次数"),
+            "limit_stat": row.get("涨停统计"),
+            "limit_boards": row.get("连板数"),
+            "source": "eastmoney_zt_pool_em",
+        }
+    return pool
+
+
+def load_limit_up_pools(market_dates: Sequence[str], args: argparse.Namespace) -> Dict[str, Dict[str, Dict[str, object]]]:
+    if not getattr(args, "block_limit_up_buys", False) or args.limit_up_source != "zt_pool":
+        return {}
+    pools: Dict[str, Dict[str, Dict[str, object]]] = {}
+    for idx, date_text in enumerate(market_dates, start=1):
+        pools[date_text] = load_limit_up_pool_for_date(date_text, args)
+        if args.progress_every > 0 and idx % 40 == 0:
+            print(f"[{now_text()}] loaded zt pools {idx}/{len(market_dates)}")
+    return pools
+
+
+def is_limit_up_buy_blocked(
+    signal: object,
+    args: argparse.Namespace,
+    day_limit_up_pool: Optional[Dict[str, Dict[str, object]]] = None,
+) -> Tuple[bool, Dict[str, object]]:
+    if not getattr(args, "block_limit_up_buys", False):
+        return False, {}
+    code = normalize_code(getattr(signal, "code", ""))
+    if args.limit_up_source == "zt_pool":
+        meta = (day_limit_up_pool or {}).get(code)
+        return bool(meta), dict(meta or {})
+
+    close = signal_float(signal, "close")
+    high = signal_float(signal, "high")
+    pct_chg = signal_float(signal, "pct_chg")
+    if not (math.isfinite(close) and math.isfinite(high) and math.isfinite(pct_chg)):
+        return False, {}
+    if close <= 0 or high <= 0:
+        return False, {}
+    near_day_high = close >= high * float(args.limit_close_high_ratio)
+    blocked = pct_chg >= float(args.limit_up_pct) and near_day_high
+    return blocked, {"source": "daily_ohlcv_limit_proxy"} if blocked else {}
+
+
 def summarize_operations(items: Sequence[Dict[str, object]], max_items: int = 8) -> str:
     if not items:
         return ""
@@ -83,6 +168,8 @@ def summarize_operations(items: Sequence[Dict[str, object]], max_items: int = 8)
             labels.append(f"买{code}{name}{shares}股@{price}")
         elif action == "sell":
             labels.append(f"卖{code}{name}{shares}股@{price}({item.get('reason')})")
+        elif action == "skip":
+            labels.append(f"跳{code}{name}({item.get('reason')})")
     if len(items) > max_items:
         labels.append(f"...另{len(items) - max_items}笔")
     return "；".join(labels)
@@ -101,10 +188,17 @@ def current_market_value(holdings: Sequence[SlotHolding], histories: Dict[str, p
 
 
 def simulate(args: argparse.Namespace) -> Dict[str, object]:
-    signals, histories, market_dates, start, end, universe_count = build_signals_and_histories(args)
+    prebuilt = getattr(args, "_prebuilt_data", None)
+    if prebuilt is None:
+        signals, histories, market_dates, start, end, universe_count = build_signals_and_histories(args)
+    else:
+        signals, histories, market_dates, start, end, universe_count = prebuilt
     if not market_dates:
         raise ValueError("no trading dates available for top2 backtest")
     signals_by_date = {date: df.sort_values(["rank"]) for date, df in signals.groupby("snapshot_date")} if not signals.empty else {}
+    limit_up_pools = getattr(args, "_limit_up_pools", None)
+    if limit_up_pools is None:
+        limit_up_pools = load_limit_up_pools(market_dates, args)
 
     cash = float(args.initial_cash)
     holdings: List[SlotHolding] = []
@@ -116,6 +210,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     total_transfer_fee = 0.0
     total_buys = 0
     total_sells = 0
+    total_limit_up_skips = 0
     closed_returns: List[float] = []
     daily_rows: List[Dict[str, object]] = []
     operations_by_day: List[Dict[str, object]] = []
@@ -185,9 +280,13 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         selected_count = int(len(signals_by_date.get(date_text, []))) if date_text in signals_by_date else 0
         empty_slots = [slot for slot in range(1, args.slots + 1) if all(h.slot != slot for h in holdings)]
         skipped = 0
+        limit_up_skips = 0
         first_skipped_rank: Optional[int] = None
         bought_codes = {holding.code for holding in holdings}
+        blocked_buy_codes: set[str] = set()
+        limit_up_blocked_labels: List[str] = []
         candidates = signals_by_date.get(date_text, pd.DataFrame())
+        day_limit_up_pool = limit_up_pools.get(date_text, {}) if limit_up_pools else {}
 
         for slot in empty_slots:
             remaining_slots = args.slots - len(holdings)
@@ -197,7 +296,37 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             bought = False
             for signal in candidates.itertuples(index=False):
                 code = normalize_code(signal.code)
-                if code in bought_codes or code in sold_codes:
+                if code in bought_codes or code in sold_codes or code in blocked_buy_codes:
+                    continue
+                blocked, block_meta = is_limit_up_buy_blocked(signal, args, day_limit_up_pool)
+                if blocked:
+                    skipped += 1
+                    limit_up_skips += 1
+                    total_limit_up_skips += 1
+                    blocked_buy_codes.add(code)
+                    first_skipped_rank = first_skipped_rank or int(signal.rank)
+                    seal_amount = float(block_meta.get("seal_amount") or 0.0)
+                    label = f"{int(signal.rank)}.{code}{signal.name}"
+                    if seal_amount > 0:
+                        label += f" 封单{seal_amount / 10000:.0f}万"
+                    limit_up_blocked_labels.append(label)
+                    day_ops.append(
+                        {
+                            "action": "skip",
+                            "date": date_text,
+                            "slot": slot,
+                            "code": code,
+                            "name": str(signal.name),
+                            "rank": int(signal.rank),
+                            "price": round(float(signal.close), 4),
+                            "pct_chg": round(signal_float(signal, "pct_chg"), 4),
+                            "seal_amount": round(seal_amount, 2),
+                            "first_limit_time": block_meta.get("first_limit_time"),
+                            "last_limit_time": block_meta.get("last_limit_time"),
+                            "break_count": block_meta.get("break_count"),
+                            "reason": "尾盘涨停不可买入",
+                        }
+                    )
                     continue
                 price = float(signal.close)
                 shares, cost, fees = max_affordable_shares(price, budget, args)
@@ -268,6 +397,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "buy_count": len(buys),
             "sell_count": len(sells),
             "skipped_count": skipped,
+            "limit_up_skip_count": limit_up_skips,
             "first_skipped_rank": first_skipped_rank,
             "cash_start": round(cash_start, 2),
             "cash_end": round(cash, 2),
@@ -279,6 +409,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "fees_paid_total": round(total_fees, 2),
             "realized_pnl_total": round(realized_pnl, 2),
             "unrealized_pnl": round(unrealized_pnl, 2),
+            "limit_up_blocked": "；".join(limit_up_blocked_labels[:8]),
             "operations": summarize_operations(day_ops),
         }
         daily_rows.append(day)
@@ -345,13 +476,16 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "unrealized_pnl": round(sum(item["unrealized_pnl"] for item in open_holdings), 2),
         "unrealized_pnl_after_sell_fee": round(sum(item["unrealized_pnl_after_sell_fee"] for item in open_holdings), 2),
         "total_fees": round(total_fees, 2),
+        "total_costs": round(total_fees, 2),
         "total_commission": round(total_commission, 2),
         "total_stamp_tax": round(total_stamp_tax, 2),
         "total_transfer_fee": round(total_transfer_fee, 2),
         "estimated_open_sell_fees": round(liquidation_fees, 2),
+        "total_costs_with_estimated_exit": round(total_fees + liquidation_fees, 2),
         "max_drawdown_pct": round(float(drawdown.min() * 100.0), 4),
         "total_buys": total_buys,
         "total_sells": total_sells,
+        "blocked_limit_up_buys": total_limit_up_skips,
         "open_lots": len(open_holdings),
         "closed_win_rate_pct": round_or_none((closed > 0).mean() * 100.0 if not closed.empty else None, 2),
         "avg_closed_ret_pct": round_or_none(closed.mean() if not closed.empty else None, 4),
@@ -369,17 +503,44 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     }
 
     slot_label = f"Top{int(args.slots)}"
+    limit_block_enabled = bool(getattr(args, "block_limit_up_buys", False))
+    if limit_block_enabled and args.limit_up_source == "zt_pool":
+        buy_block_text = (
+            f"若候选股出现在东方财富当日涨停股池且封板资金>={args.min_seal_amount:.0f}，"
+            "则视为尾盘涨停无法买入并顺延下一名。"
+        )
+    elif limit_block_enabled:
+        buy_block_text = f"若候选股涨跌幅>={args.limit_up_pct}%且收盘接近当日最高价，则视为尾盘涨停无法买入并顺延下一名。"
+    else:
+        buy_block_text = "未模拟涨跌停无法成交影响。"
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "port": f"formula_breakout_top{int(args.slots)}_backtest",
-        "strategy_name": f"公式选股{slot_label}满仓轮动",
+        "port": f"formula_breakout_top{int(args.slots)}" + ("_limit" if limit_block_enabled else "") + "_backtest",
+        "strategy_name": f"公式选股{slot_label}满仓轮动" + ("（封单过滤）" if limit_block_enabled else ""),
         "start_date": start.strftime("%Y-%m-%d"),
         "end_date": end.strftime("%Y-%m-%d"),
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": int(args.lot_size),
         "slots": int(args.slots),
-        "assumption": "每天收盘先按卖出规则处理已有仓位；空出的仓位槽用当日公式评分从高到低补齐。两个空槽时现金均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。",
+        "assumption": (
+            "每天收盘先按卖出规则处理已有仓位；空出的仓位槽用当日公式评分从高到低补齐。"
+            "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
+            + buy_block_text
+        ),
+        "buy_block_rule": {
+            "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
+            "limit_up_source": args.limit_up_source,
+            "limit_up_pool_dir": args.limit_up_pool_dir,
+            "min_seal_amount": float(args.min_seal_amount),
+            "limit_up_pct": float(args.limit_up_pct),
+            "limit_close_high_ratio": float(args.limit_close_high_ratio),
+            "description": (
+                "东方财富历史涨停股池：出现于当日涨停股池且封板资金达到阈值，判定为尾盘涨停不可买入。"
+                if args.limit_up_source == "zt_pool"
+                else "日线近似：涨跌幅达到阈值且收盘接近最高价，判定为尾盘涨停不可买入。"
+            ),
+        },
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -420,6 +581,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-commission", type=float, default=5.0)
     parser.add_argument("--stamp-tax-rate", type=float, default=0.0005)
     parser.add_argument("--transfer-fee-rate", type=float, default=0.00001)
+    parser.add_argument("--block-limit-up-buys", action="store_true")
+    parser.add_argument("--limit-up-source", choices=["zt_pool", "daily"], default="zt_pool")
+    parser.add_argument("--limit-up-pool-dir", default="data_cache/formula_breakout_backtests/zt_pool_em")
+    parser.add_argument("--refresh-limit-up-pool", action="store_true")
+    parser.add_argument("--min-seal-amount", type=float, default=1.0)
+    parser.add_argument("--limit-up-pct", type=float, default=9.8)
+    parser.add_argument("--limit-close-high-ratio", type=float, default=0.999)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/formula_breakout_top2_backtest_1y.json")
