@@ -110,20 +110,16 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
     close = row_float(row, "收盘")
     open_ = row_float(row, "开盘")
     low = row_float(row, "最低")
-    stop_price = float(getattr(holding, "entry_open", 0.0) or 0.0)
+    stop_price = float(getattr(holding, "entry_price", 0.0) or 0.0)
     reasons: List[str] = []
     price = close
     execution_time = "收盘"
     trigger_price: Optional[float] = None
     if stop_price > 0 and low < stop_price:
-        reasons.append("盘中跌破买入阳线开盘价止损")
+        reasons.append("盘中跌破买入价止损")
         trigger_price = stop_price
-        if open_ > 0 and open_ < stop_price:
-            price = open_
-            execution_time = "开盘触发止损"
-        else:
-            price = stop_price
-            execution_time = "盘中触发止损"
+        price = stop_price
+        execution_time = "盘中触发止损"
     if is_doji(row):
         reasons.append("十字星")
     if is_volume_bearish(row):
@@ -486,7 +482,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天先按当日K线检查已有仓位卖出；若盘中最低价严格低于买入阳线开盘价，则视为触发止损，开盘已低于止损线则按开盘价卖出，否则按止损线卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；若盘中最低价严格低于实际买入价，则视为触发止损，并按买入价卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；买入日不回看买入前盘中低点；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -494,7 +490,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "transfer_fee_rate_both_sides": args.transfer_fee_rate,
         },
         "sell_rules": {
-            "stop_loss": "后续交易日盘中最低价严格低于买入信号阳线开盘价时触发止损；若开盘已低于止损线按开盘价卖出，否则按止损线卖出。",
+            "stop_loss": "后续交易日盘中最低价严格低于实际买入价时触发止损，并按买入价卖出。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
             "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳。",
             "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线。",
