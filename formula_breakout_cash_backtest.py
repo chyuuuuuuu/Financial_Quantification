@@ -8,6 +8,7 @@ import builtins
 import json
 import math
 from dataclasses import dataclass, asdict
+from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
 from functools import partial
 from pathlib import Path
@@ -106,19 +107,23 @@ def row_float(row: pd.Series, field: str) -> float:
     return float(value) if math.isfinite(float(value)) else 0.0
 
 
+def round_price_2(value: float) -> float:
+    return float(Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
 def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
     close = row_float(row, "收盘")
-    open_ = row_float(row, "开盘")
     low = row_float(row, "最低")
-    stop_price = float(getattr(holding, "entry_price", 0.0) or 0.0)
+    stop_trigger_price = float(getattr(holding, "entry_open", 0.0) or 0.0)
+    stop_execution_price = round_price_2(stop_trigger_price * 0.9999) if stop_trigger_price > 0 else 0.0
     reasons: List[str] = []
     price = close
     execution_time = "收盘"
     trigger_price: Optional[float] = None
-    if stop_price > 0 and low < stop_price:
-        reasons.append("盘中跌破买入价止损")
-        trigger_price = stop_price
-        price = stop_price
+    if stop_trigger_price > 0 and low < stop_trigger_price:
+        reasons.append("盘中跌破买入日开盘价止损")
+        trigger_price = stop_trigger_price
+        price = stop_execution_price
         execution_time = "盘中触发止损"
     if is_doji(row):
         reasons.append("十字星")
@@ -243,6 +248,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
 
         remaining: List[Holding] = []
         for holding in holdings:
+            if date_text <= holding.entry_date:
+                remaining.append(holding)
+                continue
             hist = histories.get(holding.code)
             row = bar_for_date(hist, date_text) if hist is not None else None
             if row is None:
@@ -482,7 +490,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天先按当日K线检查已有仓位卖出；若盘中最低价严格低于实际买入价，则视为触发止损，并按买入价卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；买入日不回看买入前盘中低点；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日盘中最低价严格低于买入日开盘价A，则视为触发止损，并按A*0.9999四舍五入保留两位小数卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -490,7 +498,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "transfer_fee_rate_both_sides": args.transfer_fee_rate,
         },
         "sell_rules": {
-            "stop_loss": "后续交易日盘中最低价严格低于实际买入价时触发止损，并按买入价卖出。",
+            "stop_loss": "T+1交易；买入日后续K线最低价严格低于买入日开盘价A时触发止损，成交价按A*0.9999四舍五入保留两位小数。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
             "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳。",
             "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线。",

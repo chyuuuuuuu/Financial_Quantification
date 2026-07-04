@@ -244,6 +244,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
 
         remaining: List[SlotHolding] = []
         for holding in holdings:
+            if date_text <= holding.entry_date:
+                remaining.append(holding)
+                continue
             hist = histories.get(holding.code)
             row = bar_for_date(hist, date_text) if hist is not None else None
             if row is None:
@@ -583,15 +586,15 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "lot_size": int(args.lot_size),
         "slots": int(args.slots),
         "assumption": (
-            "每天先按当日K线处理已有仓位；若盘中最低价严格低于实际买入价，则视为触发止损，"
-            "并按买入价卖出；其他卖出规则按收盘价卖出。"
+            "每天先按当日K线处理已有仓位；T+1交易，买入日当日不卖出；"
+            "若后续交易日盘中最低价严格低于买入日开盘价A，则视为触发止损，"
+            "并按A*0.9999四舍五入保留两位小数卖出；其他卖出规则按收盘价卖出。"
             "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
-            "买入日不回看买入前盘中低点。"
             "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
             + buy_block_text
         ),
         "sell_rules": {
-            "stop_loss": "后续交易日盘中最低价严格低于实际买入价时触发止损，并按买入价卖出。",
+            "stop_loss": "T+1交易；买入日后续K线最低价严格低于买入日开盘价A时触发止损，成交价按A*0.9999四舍五入保留两位小数。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)，按收盘价卖出。",
             "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳，按收盘价卖出。",
             "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线，按收盘价卖出。",
