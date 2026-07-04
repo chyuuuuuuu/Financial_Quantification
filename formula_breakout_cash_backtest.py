@@ -101,11 +101,29 @@ def is_bearish_engulfing(row: pd.Series) -> bool:
     return close < open_ and prev_close > prev_open and open_ >= prev_close and close <= prev_open
 
 
-def sell_reasons(row: pd.Series, holding: Holding) -> List[str]:
-    close = float(row.get("收盘") or 0.0)
+def row_float(row: pd.Series, field: str) -> float:
+    value = pd.to_numeric(pd.Series([row.get(field)]), errors="coerce").iloc[0]
+    return float(value) if math.isfinite(float(value)) else 0.0
+
+
+def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
+    close = row_float(row, "收盘")
+    open_ = row_float(row, "开盘")
+    low = row_float(row, "最低")
+    stop_price = float(getattr(holding, "entry_open", 0.0) or 0.0)
     reasons: List[str] = []
-    if close < holding.entry_open:
-        reasons.append("收盘跌破买入阳线开盘价")
+    price = close
+    execution_time = "收盘"
+    trigger_price: Optional[float] = None
+    if stop_price > 0 and low < stop_price:
+        reasons.append("盘中跌破买入阳线开盘价止损")
+        trigger_price = stop_price
+        if open_ > 0 and open_ < stop_price:
+            price = open_
+            execution_time = "开盘触发止损"
+        else:
+            price = stop_price
+            execution_time = "盘中触发止损"
     if is_doji(row):
         reasons.append("十字星")
     if is_volume_bearish(row):
@@ -114,7 +132,16 @@ def sell_reasons(row: pd.Series, holding: Holding) -> List[str]:
         reasons.append("上长阴线")
     if is_bearish_engulfing(row):
         reasons.append("阴包阳实体吞没")
-    return reasons
+    return {
+        "reasons": reasons,
+        "price": price,
+        "execution_time": execution_time,
+        "trigger_price": trigger_price,
+    }
+
+
+def sell_reasons(row: pd.Series, holding: Holding) -> List[str]:
+    return list(sell_decision(row, holding)["reasons"])
 
 
 def fee_breakdown(amount: float, side: str, args: argparse.Namespace) -> Dict[str, float]:
@@ -225,11 +252,12 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             if row is None:
                 remaining.append(holding)
                 continue
-            reasons = sell_reasons(row, holding)
+            decision = sell_decision(row, holding)
+            reasons = list(decision["reasons"])
             if not reasons:
                 remaining.append(holding)
                 continue
-            price = float(row["收盘"])
+            price = float(decision["price"])
             gross = price * holding.shares
             fees = fee_breakdown(gross, "sell", args)
             proceeds = gross - fees["total_fee"]
@@ -266,6 +294,8 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     "pnl": round(pnl, 2),
                     "ret_pct": round(ret_pct, 4),
                     "reason": "；".join(reasons),
+                    "execution_time": decision["execution_time"],
+                    "trigger_price": round(float(decision["trigger_price"]), 4) if decision["trigger_price"] is not None else None,
                 }
             )
         holdings = remaining
@@ -327,6 +357,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     "rank": holding.entry_rank,
                     "formula_score": round(holding.entry_score, 3),
                     "entry_open": round(holding.entry_open, 4),
+                    "execution_time": "收盘集合竞价/15:00",
                     }
                 )
 
@@ -455,7 +486,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天收盘先按当日K线检查已有仓位卖出，再按当日公式评分排名以收盘价依次买入1手；已计入佣金、印花税、过户费；不计滑点和涨跌停无法成交影响。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；若盘中最低价严格低于买入阳线开盘价，则视为触发止损，开盘已低于止损线则按开盘价卖出，否则按止损线卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -463,7 +494,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "transfer_fee_rate_both_sides": args.transfer_fee_rate,
         },
         "sell_rules": {
-            "stop_loss": "后续交易日收盘价严格低于买入信号阳线开盘价时，按收盘价卖出。",
+            "stop_loss": "后续交易日盘中最低价严格低于买入信号阳线开盘价时触发止损；若开盘已低于止损线按开盘价卖出，否则按止损线卖出。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
             "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳。",
             "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线。",

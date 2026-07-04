@@ -410,8 +410,8 @@
                 <table>
                     <thead>
                     <tr>
-                        <th>序号</th><th>代码</th><th>名称</th><th>买入日</th><th>卖出日</th><th>状态</th>
-                        <th>持仓天数</th><th>股数</th><th>买入价</th><th>卖出价</th><th>买入排名</th>
+                        <th>序号</th><th>代码</th><th>名称</th><th>买入日</th><th>买入时点</th><th>卖出日</th><th>卖出时点</th><th>状态</th>
+                        <th>持仓天数</th><th>股数</th><th>买入价</th><th>卖出价</th><th>止损线</th><th>买入排名</th>
                         <th>评分</th><th>总费用</th><th>盈亏</th><th>收益率</th><th>卖出原因</th>
                     </tr>
                     </thead>
@@ -1122,12 +1122,15 @@ function renderTop3Trades() {
             <td>${esc(r.code) || '-'}</td>
             <td>${esc(r.name) || '-'}</td>
             <td>${esc(r.buy_date) || '-'}</td>
+            <td>${esc(r.buy_execution_time) || '-'}</td>
             <td>${esc(r.sell_date) || '-'}</td>
+            <td>${esc(r.sell_execution_time) || '-'}</td>
             <td>${r.status === 'open' ? '持仓中' : '已卖出'}</td>
             <td>${r.holding_days ?? '-'}</td>
             <td>${r.shares ?? '-'}</td>
             <td>${fmt(r.buy_price, 2)}</td>
             <td>${r.sell_price == null ? '-' : fmt(r.sell_price, 2)}</td>
+            <td>${r.trigger_price == null ? '-' : fmt(r.trigger_price, 2)}</td>
             <td>${r.buy_rank ?? '-'}</td>
             <td>${fmt(r.formula_score, 2)}</td>
             <td>${fmt(r.total_fee, 0)}</td>

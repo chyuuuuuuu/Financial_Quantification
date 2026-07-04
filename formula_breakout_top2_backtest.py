@@ -21,7 +21,7 @@ from formula_breakout_cash_backtest import (
     bar_for_date,
     build_signals_and_histories,
     fee_breakdown,
-    sell_reasons,
+    sell_decision,
 )
 from formula_breakout_pipeline import clean_records, normalize_code, now_text
 
@@ -249,11 +249,12 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             if row is None:
                 remaining.append(holding)
                 continue
-            reasons = sell_reasons(row, holding)  # type: ignore[arg-type]
+            decision = sell_decision(row, holding)  # type: ignore[arg-type]
+            reasons = list(decision["reasons"])
             if not reasons:
                 remaining.append(holding)
                 continue
-            price = float(row["收盘"])
+            price = float(decision["price"])
             gross = price * holding.shares
             fees = fee_breakdown(gross, "sell", args)
             proceeds = gross - fees["total_fee"]
@@ -293,6 +294,8 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     "pnl": round(pnl, 2),
                     "ret_pct": round(ret_pct, 4),
                     "reason": "；".join(reasons),
+                    "execution_time": decision["execution_time"],
+                    "trigger_price": round(float(decision["trigger_price"]), 4) if decision["trigger_price"] is not None else None,
                 }
             )
         holdings = remaining
@@ -399,6 +402,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                         "formula_score": round(holding.entry_score, 3),
                         "entry_open": round(holding.entry_open, 4),
                         "slot_budget": round(budget, 2),
+                        "execution_time": "收盘集合竞价/15:00",
                     }
                 )
                 break
@@ -579,10 +583,19 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "lot_size": int(args.lot_size),
         "slots": int(args.slots),
         "assumption": (
-            "每天收盘先按卖出规则处理已有仓位；空出的仓位槽用当日公式评分从高到低补齐。"
+            "每天先按当日K线处理已有仓位；若盘中最低价严格低于买入阳线开盘价，则视为触发止损，"
+            "开盘已低于止损线则按开盘价卖出，否则按止损线卖出；其他卖出规则按收盘价卖出。"
+            "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
             "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
             + buy_block_text
         ),
+        "sell_rules": {
+            "stop_loss": "后续交易日盘中最低价严格低于买入信号阳线开盘价时触发止损；若开盘已低于止损线按开盘价卖出，否则按止损线卖出。",
+            "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)，按收盘价卖出。",
+            "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳，按收盘价卖出。",
+            "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线，按收盘价卖出。",
+            "bearish_engulfing": "阴包阳实体吞没：当日阴线实体完全吞没前一交易日阳线实体，按收盘价卖出。",
+        },
         "buy_block_rule": {
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
             "limit_up_source": args.limit_up_source,
