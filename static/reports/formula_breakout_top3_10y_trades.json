@@ -87008,7 +87008,7 @@
       "buy_date": "2026-06-24",
       "buy_execution_time": "收盘集合竞价/15:00",
       "sell_date": "2026-06-25",
-      "sell_execution_time": "盘中触发止损",
+      "sell_execution_time": "09:47 盘中触发止损",
       "status": "closed",
       "holding_days": 1,
       "shares": 6000,
@@ -87029,7 +87029,12 @@
       "last_close": null,
       "market_value": null,
       "unrealized_pnl": null,
-      "unrealized_ret_pct": null
+      "unrealized_ret_pct": null,
+      "minute_stop_time": "2026-06-25 09:47",
+      "minute_stop_source": "sina_1m",
+      "minute_stop_low": 17.82,
+      "minute_stop_high": 17.92,
+      "minute_stop_close": 17.82
     },
     {
       "lot_id": 2808,
@@ -87070,7 +87075,7 @@
       "buy_date": "2026-06-25",
       "buy_execution_time": "收盘集合竞价/15:00",
       "sell_date": "2026-06-26",
-      "sell_execution_time": "盘中触发止损",
+      "sell_execution_time": "14:57 盘中触发止损",
       "status": "closed",
       "holding_days": 1,
       "shares": 8500,
@@ -87091,7 +87096,12 @@
       "last_close": null,
       "market_value": null,
       "unrealized_pnl": null,
-      "unrealized_ret_pct": null
+      "unrealized_ret_pct": null,
+      "minute_stop_time": "2026-06-26 14:57",
+      "minute_stop_source": "sina_1m",
+      "minute_stop_low": 13.18,
+      "minute_stop_high": 13.22,
+      "minute_stop_close": 13.2
     },
     {
       "lot_id": 2810,
@@ -87101,7 +87111,7 @@
       "buy_date": "2026-06-25",
       "buy_execution_time": "收盘集合竞价/15:00",
       "sell_date": "2026-06-26",
-      "sell_execution_time": "盘中触发止损",
+      "sell_execution_time": "09:45 盘中触发止损",
       "status": "closed",
       "holding_days": 1,
       "shares": 1600,
@@ -87122,7 +87132,12 @@
       "last_close": null,
       "market_value": null,
       "unrealized_pnl": null,
-      "unrealized_ret_pct": null
+      "unrealized_ret_pct": null,
+      "minute_stop_time": "2026-06-26 09:45",
+      "minute_stop_source": "sina_1m",
+      "minute_stop_low": 68.68,
+      "minute_stop_high": 69.17,
+      "minute_stop_close": 68.7
     },
     {
       "lot_id": 2811,
@@ -87163,7 +87178,7 @@
       "buy_date": "2026-06-26",
       "buy_execution_time": "收盘集合竞价/15:00",
       "sell_date": "2026-06-29",
-      "sell_execution_time": "盘中触发止损",
+      "sell_execution_time": "09:34 盘中触发止损",
       "status": "closed",
       "holding_days": 3,
       "shares": 3400,
@@ -87184,7 +87199,12 @@
       "last_close": null,
       "market_value": null,
       "unrealized_pnl": null,
-      "unrealized_ret_pct": null
+      "unrealized_ret_pct": null,
+      "minute_stop_time": "2026-06-29 09:34",
+      "minute_stop_source": "sina_1m",
+      "minute_stop_low": 31.34,
+      "minute_stop_high": 31.86,
+      "minute_stop_close": 31.43
     },
     {
       "lot_id": 2813,
@@ -87194,7 +87214,7 @@
       "buy_date": "2026-06-26",
       "buy_execution_time": "收盘集合竞价/15:00",
       "sell_date": "2026-06-30",
-      "sell_execution_time": "盘中触发止损",
+      "sell_execution_time": "09:31 盘中触发止损",
       "status": "closed",
       "holding_days": 4,
       "shares": 24700,
@@ -87215,7 +87235,12 @@
       "last_close": null,
       "market_value": null,
       "unrealized_pnl": null,
-      "unrealized_ret_pct": null
+      "unrealized_ret_pct": null,
+      "minute_stop_time": "2026-06-30 09:31",
+      "minute_stop_source": "sina_1m",
+      "minute_stop_low": 4.31,
+      "minute_stop_high": 4.41,
+      "minute_stop_close": 4.37
     },
     {
       "lot_id": 2814,
@@ -109033,5 +109058,18 @@
       "win_rate_pct": 0.0
     }
   ],
-  "publish_revision": "2026-07-04-intraday-stop-redeploy1"
+  "publish_revision": "2026-07-04-minute-stop-times",
+  "minute_data": {
+    "enabled": true,
+    "sources": [
+      "sina_1m",
+      "eastmoney_1m"
+    ],
+    "note": "仅对本地分钟线缓存覆盖到的卖出日补充首次跌破止损线分钟；未覆盖历史仍保留日线推断。",
+    "match_counts": {
+      "missing_cache": 1060,
+      "missing_date": 13,
+      "ok": 5
+    }
+  }
 }
