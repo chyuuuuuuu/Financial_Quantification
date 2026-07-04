@@ -115,7 +115,7 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
     close = row_float(row, "收盘")
     low = row_float(row, "最低")
     stop_trigger_price = float(getattr(holding, "entry_open", 0.0) or 0.0)
-    stop_execution_price = round_price_2(stop_trigger_price * 0.9999) if stop_trigger_price > 0 else 0.0
+    stop_execution_price = round_price_2(stop_trigger_price - 0.01) if stop_trigger_price > 0 else 0.0
     reasons: List[str] = []
     price = close
     execution_time = "收盘"
@@ -490,7 +490,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日盘中最低价严格低于买入日开盘价A，则视为触发止损，并按A*0.9999四舍五入保留两位小数卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日盘中最低价严格低于买入日开盘价A，则视为触发止损，并按A-0.01卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -498,7 +498,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "transfer_fee_rate_both_sides": args.transfer_fee_rate,
         },
         "sell_rules": {
-            "stop_loss": "T+1交易；买入日后续K线最低价严格低于买入日开盘价A时触发止损，成交价按A*0.9999四舍五入保留两位小数。",
+            "stop_loss": "T+1交易；买入日后续K线最低价严格低于买入日开盘价A时触发止损，成交价按A-0.01。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
             "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳。",
             "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线。",
