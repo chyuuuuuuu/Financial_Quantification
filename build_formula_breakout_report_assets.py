@@ -47,10 +47,10 @@ def build_limitations(report: Dict[str, Any], coverage: Dict[str, Any]) -> List[
     universe = coverage.get("universe_count", report.get("universe_count"))
     covered = coverage.get("history_covered_to_2016_count", "-")
     return [
-        "止损规则按用户最新指定执行：T+1交易，买入日不卖出；后续交易日最低价严格低于买入日开盘价A，即视为当天盘中触发。",
-        "止损成交价按A-0.01；该假设不处理真实盘中排队、滑点和极端流动性问题。",
+        "止损规则按用户最新指定执行：T+1交易，买入日不卖出；后续交易日收盘价B小于等于买入日开盘价A，即视为收盘触发。",
+        "止损成交价为B，即触发日收盘价；该假设不处理真实收盘集合竞价排队和滑点问题。",
         "买入时刻按信号日收盘集合竞价/15:00的收盘价近似。",
-        "免费分钟线接口仅覆盖最近若干交易日；覆盖不到的历史止损仍按日线最低价推断触发。",
+        "当前止损以日线收盘价判断，不使用分钟线触发时间。",
         "封单数据使用东方财富涨停股池；本次十年区间内可用非空封单池仅覆盖到2026-07-03，其他日期按无法确认封单处理，不触发封单买入过滤。",
         f"历史日线覆盖不完整：{universe}只公式股票中{covered}只覆盖到2016年，其他股票从本地可用首日开始计算。",
         "回测计入佣金、印花税、过户费；不计滑点和真实排队成交。",
@@ -213,31 +213,8 @@ def load_minutes(root: Path, code: str) -> List[Dict[str, Any]]:
 
 
 def annotate_minute_stop_times(trades: Dict[int, Dict[str, Any]], minute_dir: Path) -> Dict[str, int]:
-    cache: Dict[str, List[Dict[str, Any]]] = {}
-    counts: Dict[str, int] = defaultdict(int)
-    for trade in trades.values():
-        if trade.get("status") != "closed" or "开盘价止损" not in str(trade.get("sell_reason", "")):
-            continue
-        code = str(trade.get("code") or "")
-        rows = cache.setdefault(code, load_minutes(minute_dir, code))
-        if not rows:
-            counts["missing_cache"] += 1
-            continue
-        day_rows = [row for row in rows if row["date"] == trade.get("sell_date")]
-        if not day_rows:
-            counts["missing_date"] += 1
-            continue
-        trigger = float(trade.get("trigger_price") or trade.get("entry_open") or 0)
-        hit = next((row for row in day_rows if row["low"] < trigger), None)
-        if not hit:
-            counts["not_crossed_in_minutes"] += 1
-            continue
-        time_text = hit["time"][11:16] if len(hit["time"]) >= 16 else hit["time"]
-        trade["sell_execution_time"] = f"{time_text} 盘中触发止损"
-        trade["minute_low"] = hit["low"]
-        trade["minute_source"] = hit["source"]
-        counts["ok"] += 1
-    return dict(sorted(counts.items()))
+    # Current stop rule is evaluated on daily close, so there is no intraday trigger minute to annotate.
+    return {}
 
 
 def build_stock_summary(trades: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -316,9 +293,9 @@ def build_trade_payload(report: Dict[str, Any], trades: Dict[int, Dict[str, Any]
             "open_unrealized_pnl": r2(sum(float(trade.get("unrealized_pnl") or 0) for trade in trade_list if trade.get("status") == "open")),
         },
         "minute_data": {
-            "enabled": True,
+            "enabled": bool(minute_counts),
             "sources": ["sina_1m", "eastmoney_1m"],
-            "note": "仅对本地分钟线缓存覆盖到的卖出日补充首次跌破买入日开盘价A的分钟；未覆盖历史仍保留日线推断。",
+            "note": "当前止损以日线收盘价B判断，交易明细不再补充盘中首次触发分钟。",
             "match_counts": minute_counts,
         },
         "trades": trade_list,
