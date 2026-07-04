@@ -588,7 +588,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "assumption": (
             "每天先按当日K线处理已有仓位；T+1交易，买入日当日不卖出；"
             "若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，"
-            "并按B卖出；其他卖出规则按收盘价卖出。"
+            "并按B卖出；止盈条件为十字星或放量阴线，按收盘价卖出。"
             "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
             "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
             + buy_block_text
@@ -597,8 +597,6 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "stop_loss": "T+1交易；买入日后续K线收盘价B小于等于买入日开盘价A时触发止损，成交价为B。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)，按收盘价卖出。",
             "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳，按收盘价卖出。",
-            "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线，按收盘价卖出。",
-            "bearish_engulfing": "阴包阳实体吞没：当日阴线实体完全吞没前一交易日阳线实体，按收盘价卖出。",
         },
         "buy_block_rule": {
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),

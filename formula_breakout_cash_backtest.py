@@ -78,29 +78,6 @@ def is_volume_bearish(row: pd.Series) -> bool:
     return close < open_ and prev_volume > 0 and volume > prev_volume
 
 
-def is_long_upper_bearish(row: pd.Series) -> bool:
-    open_ = float(row.get("开盘") or 0.0)
-    close = float(row.get("收盘") or 0.0)
-    high = float(row.get("最高") or 0.0)
-    low = float(row.get("最低") or 0.0)
-    if close >= open_:
-        return False
-    body = abs(close - open_)
-    if body <= 0:
-        return False
-    upper = high - max(open_, close)
-    lower = min(open_, close) - low
-    return upper >= body * 1.5 and upper >= lower
-
-
-def is_bearish_engulfing(row: pd.Series) -> bool:
-    open_ = float(row.get("开盘") or 0.0)
-    close = float(row.get("收盘") or 0.0)
-    prev_open = float(row.get("prev_open") or 0.0)
-    prev_close = float(row.get("prev_close") or 0.0)
-    return close < open_ and prev_close > prev_open and open_ >= prev_close and close <= prev_open
-
-
 def row_float(row: pd.Series, field: str) -> float:
     value = pd.to_numeric(pd.Series([row.get(field)]), errors="coerce").iloc[0]
     return float(value) if math.isfinite(float(value)) else 0.0
@@ -122,10 +99,6 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
         reasons.append("十字星")
     if is_volume_bearish(row):
         reasons.append("放量阴线")
-    if is_long_upper_bearish(row):
-        reasons.append("上长阴线")
-    if is_bearish_engulfing(row):
-        reasons.append("阴包阳实体吞没")
     return {
         "reasons": reasons,
         "price": price,
@@ -483,7 +456,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，并按B卖出；其他卖出规则按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，并按B卖出；止盈条件为十字星或放量阴线，按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -494,8 +467,6 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "stop_loss": "T+1交易；买入日后续K线收盘价B小于等于买入日开盘价A时触发止损，成交价为B。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
             "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳。",
-            "long_upper_bearish": "上长阴线：阴线且上影线至少为实体1.5倍，并不短于下影线。",
-            "bearish_engulfing": "阴包阳实体吞没：当日阴线实体完全吞没前一交易日阳线实体。",
         },
         "summary": summary,
         "daily": daily_rows,
