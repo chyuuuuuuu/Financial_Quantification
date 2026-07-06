@@ -387,6 +387,33 @@
         </div>
     </section>
 
+    <section class="panel" id="top1TenYearPanel" hidden>
+        <h2>Top1 单票十年对比</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">Top1最终权益</div><div class="v" id="top1TenFinal">-</div></div>
+                <div class="card"><div class="k">Top1总收益率</div><div class="v" id="top1TenReturn">-</div></div>
+                <div class="card"><div class="k">Top1最大回撤</div><div class="v" id="top1TenDrawdown">-</div></div>
+                <div class="card"><div class="k">Top1总费用</div><div class="v" id="top1TenFees">-</div></div>
+                <div class="card"><div class="k">Top1买/卖</div><div class="v" id="top1TenTrades">-</div></div>
+                <div class="card"><div class="k">相对Top3收益差</div><div class="v" id="top1VsTop3ReturnGap">-</div></div>
+            </div>
+            <div class="sub" id="top1TenNote">单票模式：永远只保留一个仓位，卖出后按当日公式评分最高的一只满仓买入；卖出规则和费用模型与Top3一致。</div>
+            <canvas id="top1TenYearChart"></canvas>
+            <div class="table-wrap">
+                <table class="compact-table">
+                    <thead>
+                    <tr>
+                        <th>策略</th><th>最终权益</th><th>总盈利</th><th>总收益率</th><th>最大回撤</th>
+                        <th>总费用</th><th>买/卖</th><th>当前持仓</th><th>清仓权益</th>
+                    </tr>
+                    </thead>
+                    <tbody id="top1CompareBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel" id="top3TradePanel" hidden>
         <h2>Top3 十年交易明细</h2>
         <div class="body">
@@ -492,6 +519,7 @@ let top2Backtest = null;
 let top1Backtest = null;
 let topSlotsLimitBacktest = null;
 let top3TenYearBacktest = null;
+let top1TenYearBacktest = null;
 let top3TradeBacktest = null;
 
 async function fetchJson(url) {
@@ -596,6 +624,17 @@ async function loadTop3TenYearBacktest() {
         try { return await fetchJson(url); }
         catch (err) {
             // Top3 ten-year report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTop1TenYearBacktest() {
+    const urls = ['./reports/formula_breakout_top1_limit_backtest_10y.json', '/static/reports/formula_breakout_top1_limit_backtest_10y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Top1 ten-year report is optional while the page is being generated.
         }
     }
     return null;
@@ -1098,6 +1137,43 @@ function renderTop3TenYearBacktest(data) {
     `).join('');
 }
 
+function renderTop1TenYearComparison(top1, top3) {
+    if (!top1 || !top1.summary) return;
+    document.getElementById('top1TenYearPanel').hidden = false;
+    const s1 = top1.summary || {};
+    const s3 = top3?.summary || {};
+    setText('top1TenFinal', fmt(s1.final_equity, 0));
+    setText('top1TenReturn', `${fmt(s1.return_pct, 2)}%`, pctClass(s1.return_pct));
+    setText('top1TenDrawdown', `${fmt(s1.max_drawdown_pct, 2)}%`, pctClass(s1.max_drawdown_pct));
+    setText('top1TenFees', fmt(s1.total_fees, 0), 'down');
+    setText('top1TenTrades', `${s1.total_buys ?? 0}/${s1.total_sells ?? 0}`);
+    const hasTop3 = top3 && top3.summary;
+    const gap = hasTop3 ? Number(s1.return_pct || 0) - Number(s3.return_pct || 0) : null;
+    setText('top1VsTop3ReturnGap', gap == null ? '-' : `${fmt(gap, 2)}%`, gap == null ? '' : pctClass(gap));
+    renderEquityChart(top1, 'top1TenYearChart', '#0f766e');
+
+    const rows = [
+        ['Top1单票', top1],
+        hasTop3 ? ['Top3三槽', top3] : null,
+    ].filter(Boolean);
+    document.getElementById('top1CompareBody').innerHTML = rows.map(([label, data]) => {
+        const s = data.summary || {};
+        return `
+            <tr>
+                <td>${label}</td>
+                <td>${fmt(s.final_equity, 0)}</td>
+                <td class="${pctClass(s.profit)}">${fmt(s.profit, 0)}</td>
+                <td class="${pctClass(s.return_pct)}">${fmt(s.return_pct, 2)}%</td>
+                <td class="${pctClass(s.max_drawdown_pct)}">${fmt(s.max_drawdown_pct, 2)}%</td>
+                <td>${fmt(s.total_fees, 0)}</td>
+                <td>${s.total_buys ?? 0}/${s.total_sells ?? 0}</td>
+                <td>${s.open_lots ?? 0}</td>
+                <td>${fmt(s.final_liquidation_equity, 0)}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
 function renderTop3Trades() {
     const data = top3TradeBacktest;
     if (!data || !Array.isArray(data.trades)) return;
@@ -1201,7 +1277,7 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top3TenYearBacktest, top3TradeBacktest] = await Promise.all([
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top3TenYearBacktest, top1TenYearBacktest, top3TradeBacktest] = await Promise.all([
             loadData(),
             loadDateIndex(),
             loadBacktest(),
@@ -1210,6 +1286,7 @@ async function init() {
             loadTop1Backtest(),
             loadTopSlotsLimitBacktest(),
             loadTop3TenYearBacktest(),
+            loadTop1TenYearBacktest(),
             loadTop3TradeBacktest(),
         ]);
         selectedRows = payload.selected_rows || [];
@@ -1223,6 +1300,7 @@ async function init() {
         renderTop1Backtest(top1Backtest);
         renderTopSlotsLimitBacktest(topSlotsLimitBacktest);
         renderTop3TenYearBacktest(top3TenYearBacktest);
+        renderTop1TenYearComparison(top1TenYearBacktest, top3TenYearBacktest);
         renderTop3Trades();
         renderSelected();
         renderFeedback(payload.feedback_rows || []);
@@ -1243,6 +1321,7 @@ window.addEventListener('resize', () => {
     if (top1Backtest) renderEquityChart(top1Backtest, 'top1BacktestChart', '#a76813');
     if (topSlotsLimitBacktest) renderTopSlotsLimitChart(topSlotsLimitBacktest);
     if (top3TenYearBacktest) renderEquityChart(top3TenYearBacktest, 'top3TenYearChart', '#7c3aed');
+    if (top1TenYearBacktest) renderEquityChart(top1TenYearBacktest, 'top1TenYearChart', '#0f766e');
 });
 init();
 </script>

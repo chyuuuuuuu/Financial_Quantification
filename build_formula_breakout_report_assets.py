@@ -19,6 +19,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--trades-output", default="static/reports/formula_breakout_top3_10y_trades.json")
     parser.add_argument("--minute-dir", default="data_cache/minute_bars")
     parser.add_argument("--publish-revision", default="")
+    parser.add_argument("--skip-trades", action="store_true")
     return parser.parse_args()
 
 
@@ -319,11 +320,14 @@ def main() -> None:
     summary_payload = build_summary_payload(report, previous_summary, publish_revision)
     write_json(summary_output, summary_payload)
 
+    if args.skip_trades:
+        print(f"wrote {summary_output}")
+        return
+
     trades = build_trade_map(report)
     minute_counts = annotate_minute_stop_times(trades, Path(args.minute_dir))
     trade_payload = build_trade_payload(report, trades, minute_counts, publish_revision)
     write_json(trades_output, trade_payload)
-
     print(f"wrote {summary_output}")
     print(f"wrote {trades_output}")
     print(f"trades={trade_payload['summary']}")
