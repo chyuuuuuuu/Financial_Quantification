@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-06T14:27:16",
+  "generated_at": "2026-07-06T14:48:55",
   "snapshot_date": "2026-07-06",
-  "snapshot_time": "2026-07-06T14:24:00",
+  "snapshot_time": "2026-07-06T15:00:00",
   "snapshot_key": "20260706",
   "port": "live_formula_trading",
   "strategy_name": "公式选股Top3实盘跟单",
@@ -11,11 +11,11 @@
   "slots": 3,
   "slot_target_cash": 5000.0,
   "formula_snapshot_date": "2026-07-06",
-  "formula_snapshot_time": "2026-07-06T14:24:00",
+  "formula_snapshot_time": "2026-07-06T15:00:00",
   "formula_selected_count": 0,
   "data_status": "refresh_failed",
   "refresh_summary": {
-    "run_time": "2026-07-06T14:25:35.579203",
+    "run_time": "2026-07-06T14:47:15.771429",
     "universe": 3014,
     "refresh_ok": 0,
     "target_date": "2026-07-06",
@@ -24,7 +24,7 @@
       "": 3014
     },
     "history_dir": "data_cache/main_uptrend/hist",
-    "output_dir": "data_cache/formula_breakout_runs/20260706_1424_refresh",
+    "output_dir": "data_cache/formula_breakout_runs/20260706_1500_refresh",
     "eastmoney_only": false
   },
   "summary": {
@@ -60,7 +60,7 @@
     "last_plan_key": ""
   },
   "rules": {
-    "schedule": "交易日14:50生成当日公式Top3跟单计划。",
+    "schedule": "交易日15:00生成当日公式Top3跟单计划。",
     "position": "本金15000，三等分仓位；每个空槽使用剩余现金按剩余槽位均分后买入整手。",
     "buy": "按公式评分从高到低补齐空槽；涨停不可买或单槽资金不足一手时顺延下一名。",
     "sell": "T+1；后续交易日收盘价B小于等于买入日开盘价A时卖出；十字星或放量阴线也卖出。",
@@ -73,7 +73,7 @@
   },
   "notes": [
     "页面只生成跟单计划，不连接券商账号，不自动下单。",
-    "14:50使用当时可取得的最新日K/行情近似，最终收盘数据可能与盘中快照不同。",
+    "15:00使用当时可取得的最新日K/行情近似，最终收盘数据可能与盘中快照不同。",
     "理论账本假设你按计划成交；实际成交价不同会造成偏差。"
   ]
 }

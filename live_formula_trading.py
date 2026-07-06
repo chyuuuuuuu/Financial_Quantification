@@ -386,7 +386,7 @@ def build_plan(
                 "pnl": round(pnl, 2),
                 "ret_pct": round(pnl / basis * 100.0, 4) if basis > 0 else 0.0,
                 "reason": "；".join(reasons),
-                "execution_time": "14:50计划/尾盘手动确认",
+                "execution_time": "15:00计划/尾盘手动确认",
                 "trigger_price": round(float(decision["trigger_price"]), 4) if decision["trigger_price"] is not None else None,
             }
         )
@@ -484,7 +484,7 @@ def build_plan(
                     "formula_score": round(holding.entry_score, 3),
                     "entry_open": round(holding.entry_open, 4),
                     "slot_budget": round(budget, 2),
-                    "execution_time": "14:50计划/尾盘手动确认",
+                    "execution_time": "15:00计划/尾盘手动确认",
                 }
             )
             break
@@ -593,7 +593,7 @@ def build_report(
             "last_plan_key": state_after.get("last_plan_key", ""),
         },
         "rules": {
-            "schedule": "交易日14:50生成当日公式Top3跟单计划。",
+            "schedule": "交易日15:00生成当日公式Top3跟单计划。",
             "position": "本金15000，三等分仓位；每个空槽使用剩余现金按剩余槽位均分后买入整手。",
             "buy": "按公式评分从高到低补齐空槽；涨停不可买或单槽资金不足一手时顺延下一名。",
             "sell": "T+1；后续交易日收盘价B小于等于买入日开盘价A时卖出；十字星或放量阴线也卖出。",
@@ -606,7 +606,7 @@ def build_report(
         },
         "notes": [
             "页面只生成跟单计划，不连接券商账号，不自动下单。",
-            "14:50使用当时可取得的最新日K/行情近似，最终收盘数据可能与盘中快照不同。",
+            "15:00使用当时可取得的最新日K/行情近似，最终收盘数据可能与盘中快照不同。",
             "理论账本假设你按计划成交；实际成交价不同会造成偏差。",
         ],
     }
@@ -666,7 +666,7 @@ def print_cron(args: argparse.Namespace) -> None:
     python = args.python
     root = Path.cwd()
     print(
-        f"50 14 * * 1-5 cd {root} && {python} live_formula_trading.py --run-once --refresh --apply-state "
+        f"0 15 * * 1-5 cd {root} && {python} live_formula_trading.py --run-once --refresh --apply-state "
         f"--target-date $(date +\\%F) >> data_cache/live_trading/cron.log 2>&1"
     )
 
@@ -676,8 +676,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-once", action="store_true")
     parser.add_argument("--print-cron", action="store_true")
     parser.add_argument("--target-date", default="")
-    parser.add_argument("--schedule-hour", type=int, default=14)
-    parser.add_argument("--schedule-minute", type=int, default=50)
+    parser.add_argument("--schedule-hour", type=int, default=15)
+    parser.add_argument("--schedule-minute", type=int, default=0)
     parser.add_argument("--initial-cash", type=float, default=15000.0)
     parser.add_argument("--slots", type=int, default=3)
     parser.add_argument("--lot-size", type=int, default=100)
