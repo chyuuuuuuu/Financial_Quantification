@@ -388,6 +388,34 @@
         </div>
     </section>
 
+    <section class="panel" id="topSlotTenComparePanel" hidden>
+        <h2>Top2/Top3/Top4 十年对比</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">最高收益档位</div><div class="v" id="topSlotTenBest">-</div></div>
+                <div class="card"><div class="k">最高收益率</div><div class="v" id="topSlotTenBestReturn">-</div></div>
+                <div class="card"><div class="k">最高最终权益</div><div class="v" id="topSlotTenBestFinal">-</div></div>
+                <div class="card"><div class="k">Top2收益率</div><div class="v" id="top2TenCompareReturn">-</div></div>
+                <div class="card"><div class="k">Top3收益率</div><div class="v" id="top3TenCompareReturn">-</div></div>
+                <div class="card"><div class="k">Top4收益率</div><div class="v" id="top4TenCompareReturn">-</div></div>
+                <div class="card"><div class="k">最大回撤最低</div><div class="v" id="topSlotTenWorstDrawdown">-</div></div>
+                <div class="card"><div class="k">回测区间</div><div class="v" id="topSlotTenRange">-</div></div>
+            </div>
+            <canvas id="topSlotTenCompareChart"></canvas>
+            <div class="table-wrap">
+                <table class="compact-table">
+                    <thead>
+                    <tr>
+                        <th>策略</th><th>最终权益</th><th>清仓权益</th><th>总盈利</th><th>总收益率</th>
+                        <th>最大回撤</th><th>总费用</th><th>买/卖</th><th>封单跳过</th><th>当前持仓</th>
+                    </tr>
+                    </thead>
+                    <tbody id="topSlotTenCompareBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel" id="top1TenYearPanel" hidden>
         <h2>Top1 单票十年对比</h2>
         <div class="body">
@@ -519,7 +547,9 @@ let cashBacktest = null;
 let top2Backtest = null;
 let top1Backtest = null;
 let topSlotsLimitBacktest = null;
+let top2TenYearBacktest = null;
 let top3TenYearBacktest = null;
+let top4TenYearBacktest = null;
 let top1TenYearBacktest = null;
 let top3TradeBacktest = null;
 
@@ -619,12 +649,34 @@ async function loadTopSlotsLimitBacktest() {
     return null;
 }
 
+async function loadTop2TenYearBacktest() {
+    const urls = ['./reports/formula_breakout_top2_limit_backtest_10y.json', '/static/reports/formula_breakout_top2_limit_backtest_10y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Top2 ten-year report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
 async function loadTop3TenYearBacktest() {
     const urls = ['./reports/formula_breakout_top3_limit_backtest_10y.json', '/static/reports/formula_breakout_top3_limit_backtest_10y.json'];
     for (const url of urls) {
         try { return await fetchJson(url); }
         catch (err) {
             // Top3 ten-year report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTop4TenYearBacktest() {
+    const urls = ['./reports/formula_breakout_top4_limit_backtest_10y.json', '/static/reports/formula_breakout_top4_limit_backtest_10y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Top4 ten-year report is optional while the page is being generated.
         }
     }
     return null;
@@ -951,6 +1003,64 @@ function renderEquityChart(data, canvasId, color) {
     ctx.fillText(minV.toFixed(0), 8, pad.top + h);
 }
 
+function renderMultiEquityChart(series, canvasId) {
+    const reports = series
+        .map(item => ({ ...item, rows: (item.data?.daily || []).filter(r => Number.isFinite(Number(r.equity))) }))
+        .filter(item => item.rows.length >= 2);
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(320, Math.floor(rect.width * ratio));
+    canvas.height = Math.max(240, Math.floor(rect.height * ratio));
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    const pad = { left: 58, right: 18, top: 24, bottom: 38 };
+    const w = rect.width - pad.left - pad.right;
+    const h = rect.height - pad.top - pad.bottom;
+    ctx.strokeStyle = '#dbe3eb';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + h);
+    ctx.lineTo(pad.left + w, pad.top + h);
+    ctx.stroke();
+    if (!reports.length) return;
+    const vals = reports.flatMap(item => item.rows.map(r => Number(r.equity)));
+    const minV = Math.min(...vals, 50000);
+    const maxV = Math.max(...vals, 50000);
+    const span = Math.max(100, maxV - minV);
+    reports.forEach(item => {
+        ctx.strokeStyle = item.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        item.rows.forEach((r, i) => {
+            const x = pad.left + (i / (item.rows.length - 1)) * w;
+            const y = pad.top + h - ((Number(r.equity) - minV) / span) * h;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    });
+    ctx.font = '12px sans-serif';
+    reports.forEach((item, i) => {
+        const x = pad.left + i * 88;
+        ctx.fillStyle = item.color;
+        ctx.fillRect(x, 7, 18, 3);
+        ctx.fillStyle = '#28384d';
+        ctx.fillText(item.label, x + 24, 12);
+    });
+    const marks = [0, Math.floor(reports[0].rows.length / 2), reports[0].rows.length - 1];
+    ctx.fillStyle = '#657387';
+    ctx.font = '11px sans-serif';
+    marks.forEach(i => {
+        const row = reports[0].rows[i];
+        const x = pad.left + (i / (reports[0].rows.length - 1)) * w;
+        ctx.fillText(String(row.date).slice(0, 7), x - 20, pad.top + h + 22);
+    });
+    ctx.fillText(maxV.toFixed(0), 8, pad.top + 5);
+    ctx.fillText(minV.toFixed(0), 8, pad.top + h);
+}
+
 function renderTop2Backtest(data) {
     if (!data || !data.summary) return;
     document.getElementById('top2BacktestPanel').hidden = false;
@@ -1138,6 +1248,46 @@ function renderTop3TenYearBacktest(data) {
     `).join('');
 }
 
+function renderTopSlotTenYearComparison(top2, top3, top4) {
+    const rows = [
+        ['Top2双槽', top2, '#2563eb'],
+        ['Top3三槽', top3, '#7c3aed'],
+        ['Top4四槽', top4, '#b45309'],
+    ].filter(([, data]) => data && data.summary);
+    if (!rows.length) return;
+    document.getElementById('topSlotTenComparePanel').hidden = false;
+    const best = rows.reduce((acc, row) => Number(row[1].summary.return_pct || 0) > Number(acc[1].summary.return_pct || 0) ? row : acc, rows[0]);
+    const lowestDrawdown = rows.reduce((acc, row) => Number(row[1].summary.max_drawdown_pct || 0) > Number(acc[1].summary.max_drawdown_pct || 0) ? row : acc, rows[0]);
+    const bestSummary = best[1].summary || {};
+    const drawdownSummary = lowestDrawdown[1].summary || {};
+    setText('topSlotTenBest', best[0]);
+    setText('topSlotTenBestReturn', `${fmt(bestSummary.return_pct, 2)}%`, pctClass(bestSummary.return_pct));
+    setText('topSlotTenBestFinal', fmt(bestSummary.final_equity, 0), pctClass(bestSummary.profit));
+    setText('top2TenCompareReturn', top2?.summary ? `${fmt(top2.summary.return_pct, 2)}%` : '-', top2?.summary ? pctClass(top2.summary.return_pct) : '');
+    setText('top3TenCompareReturn', top3?.summary ? `${fmt(top3.summary.return_pct, 2)}%` : '-', top3?.summary ? pctClass(top3.summary.return_pct) : '');
+    setText('top4TenCompareReturn', top4?.summary ? `${fmt(top4.summary.return_pct, 2)}%` : '-', top4?.summary ? pctClass(top4.summary.return_pct) : '');
+    setText('topSlotTenWorstDrawdown', `${lowestDrawdown[0]} ${fmt(drawdownSummary.max_drawdown_pct, 2)}%`, pctClass(drawdownSummary.max_drawdown_pct));
+    setText('topSlotTenRange', `${rows[0][1].start_date || '-'}~${rows[0][1].end_date || '-'}`);
+    renderMultiEquityChart(rows.map(([label, data, color]) => ({ label, data, color })), 'topSlotTenCompareChart');
+    document.getElementById('topSlotTenCompareBody').innerHTML = rows.map(([label, data]) => {
+        const s = data.summary || {};
+        return `
+            <tr>
+                <td>${label}</td>
+                <td>${fmt(s.final_equity, 0)}</td>
+                <td>${fmt(s.final_liquidation_equity, 0)}</td>
+                <td class="${pctClass(s.profit)}">${fmt(s.profit, 0)}</td>
+                <td class="${pctClass(s.return_pct)}">${fmt(s.return_pct, 2)}%</td>
+                <td class="${pctClass(s.max_drawdown_pct)}">${fmt(s.max_drawdown_pct, 2)}%</td>
+                <td>${fmt(s.total_fees, 0)}</td>
+                <td>${s.total_buys ?? 0}/${s.total_sells ?? 0}</td>
+                <td>${s.blocked_limit_up_buys ?? 0}</td>
+                <td>${s.open_lots ?? 0}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
 function renderTop1TenYearComparison(top1, top3) {
     if (!top1 || !top1.summary) return;
     document.getElementById('top1TenYearPanel').hidden = false;
@@ -1278,7 +1428,7 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top3TenYearBacktest, top1TenYearBacktest, top3TradeBacktest] = await Promise.all([
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top2TenYearBacktest, top3TenYearBacktest, top4TenYearBacktest, top1TenYearBacktest, top3TradeBacktest] = await Promise.all([
             loadData(),
             loadDateIndex(),
             loadBacktest(),
@@ -1286,7 +1436,9 @@ async function init() {
             loadTop2Backtest(),
             loadTop1Backtest(),
             loadTopSlotsLimitBacktest(),
+            loadTop2TenYearBacktest(),
             loadTop3TenYearBacktest(),
+            loadTop4TenYearBacktest(),
             loadTop1TenYearBacktest(),
             loadTop3TradeBacktest(),
         ]);
@@ -1301,6 +1453,7 @@ async function init() {
         renderTop1Backtest(top1Backtest);
         renderTopSlotsLimitBacktest(topSlotsLimitBacktest);
         renderTop3TenYearBacktest(top3TenYearBacktest);
+        renderTopSlotTenYearComparison(top2TenYearBacktest, top3TenYearBacktest, top4TenYearBacktest);
         renderTop1TenYearComparison(top1TenYearBacktest, top3TenYearBacktest);
         renderTop3Trades();
         renderSelected();
@@ -1322,6 +1475,11 @@ window.addEventListener('resize', () => {
     if (top1Backtest) renderEquityChart(top1Backtest, 'top1BacktestChart', '#a76813');
     if (topSlotsLimitBacktest) renderTopSlotsLimitChart(topSlotsLimitBacktest);
     if (top3TenYearBacktest) renderEquityChart(top3TenYearBacktest, 'top3TenYearChart', '#7c3aed');
+    if (top2TenYearBacktest || top3TenYearBacktest || top4TenYearBacktest) renderMultiEquityChart([
+        { label: 'Top2双槽', data: top2TenYearBacktest, color: '#2563eb' },
+        { label: 'Top3三槽', data: top3TenYearBacktest, color: '#7c3aed' },
+        { label: 'Top4四槽', data: top4TenYearBacktest, color: '#b45309' },
+    ], 'topSlotTenCompareChart');
     if (top1TenYearBacktest) renderEquityChart(top1TenYearBacktest, 'top1TenYearChart', '#0f766e');
 });
 init();
