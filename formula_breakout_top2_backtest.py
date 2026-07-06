@@ -602,9 +602,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "lot_size": int(args.lot_size),
         "slots": int(args.slots),
         "assumption": (
-            "每天先按当日K线处理已有仓位；T+1交易，买入日当日不卖出；"
+            "每天按14:57观察口径处理已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；"
             "若后续交易日收盘价B低于买入日开盘价A，则视为触发止损，并按B卖出；"
-            "止盈条件为第一根阴线十字星、放量阴线或连续两根阴线，按收盘价卖出，阳线十字星不卖出。"
+            "未触发止损时，放量阴线、阴十字星、连续两根阴线、长上影阴线、阴包阳任一成立即按收盘价卖出。"
             + (f"买入候选必须满足公式评分>{min_formula_score:g}，低于或等于该分数不买入；" if min_formula_score > 0 else "")
             + "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
             + "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
@@ -612,9 +612,11 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         ),
         "sell_rules": {
             "stop_loss": "T+1交易；后续交易日收盘价B低于买入日开盘价A时触发止损，成交价为B。",
-            "bearish_doji": "阴线十字星：C<O 且实体占当日高低振幅比例小于10%；阳线十字星不卖出。",
-            "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)，按收盘价卖出。",
+            "volume_bearish": "放量阴线：C<O，实体跌幅(open-close)/open>2%，且V>REF(V,1)，按收盘价卖出。",
+            "bearish_doji": "阴十字星：C<O 且实体占当日高低振幅比例小于20%；阳线十字星不卖出。",
             "two_bearish": "连续两根阴线：当日C<O且前一交易日C<O，按收盘价卖出。",
+            "long_upper_shadow_bearish": "长上影阴线：C<O，上影线长度大于实体2倍，且上影线占全日振幅60%以上。",
+            "bearish_engulfing": "阴包阳：昨日阳线、今日阴线，且今日开盘价不低于昨日收盘价、今日收盘价不高于昨日开盘价。",
         },
         "buy_block_rule": {
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
