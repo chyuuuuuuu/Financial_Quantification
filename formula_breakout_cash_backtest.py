@@ -115,12 +115,12 @@ def is_bearish_engulfing(row: pd.Series) -> bool:
     )
 
 
-def is_volume_bearish(row: pd.Series, multiplier: float = 1.0) -> bool:
+def is_volume_bearish(row: pd.Series) -> bool:
     open_ = float(row.get("开盘") or 0.0)
     close = float(row.get("收盘") or 0.0)
     volume = float(row.get("成交量") or 0.0)
     prev_volume = float(row.get("prev_volume") or 0.0)
-    return close < open_ and bearish_body_pct(row) > 0.02 and prev_volume > 0 and volume > prev_volume * multiplier
+    return close < open_ and prev_volume > 0 and volume > prev_volume
 
 
 def is_long_upper_shadow_bearish(row: pd.Series) -> bool:
@@ -177,62 +177,20 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
             "trigger_price": trigger_price,
             "take_profit_armed": False,
             "take_profit_signal_reasons": [],
-            "ma5_close": row_float(row, "ma5_close") or None,
+            "ma5_close": None,
             "close_below_ma5": False,
-            "ma_trend": "stop_loss",
         }
 
-    ma5_close = row_float(row, "ma5_close")
-    close_below_ma5 = ma5_close > 0 and close < ma5_close
-    bullish_ma = is_bullish_ma_alignment(row)
     take_profit_reasons: List[str] = []
-    if bullish_ma:
-        priority2_reasons: List[str] = []
-        if is_big_drop_bearish(row):
-            priority2_reasons.append("多头严格-大跌阴线")
-        if is_bearish_engulfing(row):
-            priority2_reasons.append("多头严格-阴包阳")
-        if priority2_reasons:
-            if close_below_ma5:
-                reasons.extend(priority2_reasons)
-                reasons.append("收盘价跌破MA5确认卖出")
-                execution_time = "14:57/收盘跌破MA5卖出"
-            return {
-                "reasons": reasons,
-                "price": price,
-                "execution_time": execution_time if reasons else "多头严格二级信号未跌破MA5",
-                "trigger_price": trigger_price,
-                "take_profit_armed": False,
-                "take_profit_signal_reasons": priority2_reasons,
-                "ma5_close": ma5_close if ma5_close > 0 else None,
-                "close_below_ma5": close_below_ma5,
-                "ma_trend": "MA5>MA10>MA20",
-            }
-
-        if is_bearish_doji(row):
-            take_profit_reasons.append("多头严格-阴线十字星")
-        if is_volume_bearish(row, multiplier=1.5):
-            take_profit_reasons.append("多头严格-放量阴线")
-        if is_long_upper_shadow_bearish(row):
-            take_profit_reasons.append("多头严格-长上影阴线")
-        if is_two_bearish(row):
-            take_profit_reasons.append("多头严格-连续两根阴线")
-        if take_profit_reasons and close_below_ma5:
-            reasons.extend(take_profit_reasons)
-            reasons.append("收盘价跌破MA5确认卖出")
-            execution_time = "14:57/收盘跌破MA5卖出"
-        elif take_profit_reasons:
-            execution_time = "多头严格三级信号未跌破MA5"
-    else:
-        if is_bearish_doji(row):
-            take_profit_reasons.append("非多头简化-阴线十字星")
-        if is_volume_bearish(row, multiplier=1.0):
-            take_profit_reasons.append("非多头简化-放量阴线")
-        if is_two_bearish(row):
-            take_profit_reasons.append("非多头简化-连续两根阴线")
-        if take_profit_reasons:
-            reasons.extend(take_profit_reasons)
-            execution_time = "14:57/收盘止盈"
+    if is_bearish_doji(row):
+        take_profit_reasons.append("阴线十字星")
+    if is_volume_bearish(row):
+        take_profit_reasons.append("放量阴线")
+    if is_two_bearish(row):
+        take_profit_reasons.append("连续两根阴线")
+    if take_profit_reasons:
+        reasons.extend(take_profit_reasons)
+        execution_time = "收盘止盈"
     return {
         "reasons": reasons,
         "price": price,
@@ -240,9 +198,8 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
         "trigger_price": trigger_price,
         "take_profit_armed": False,
         "take_profit_signal_reasons": take_profit_reasons,
-        "ma5_close": ma5_close if ma5_close > 0 else None,
-        "close_below_ma5": close_below_ma5,
-        "ma_trend": "MA5>MA10>MA20" if bullish_ma else "non_bullish_ma",
+        "ma5_close": None,
+        "close_below_ma5": False,
     }
 
 
@@ -616,7 +573,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天按14:57观察口径检查已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；止损最高优先级，若后续交易日收盘价B低于买入日开盘价A，则按B卖出；未止损时，若MA5>MA10>MA20，则启用严格卖出规则，形态信号必须同时收盘跌破MA5才卖出；若不满足多头排列，则启用简化卖出规则，阴十字星、放量阴线或连续两阴直接按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日收盘价B低于买入日开盘价A，则视为触发止损，并按B卖出；止盈条件为第一根阴线十字星、放量阴线或连续两根阴线，按收盘价卖出，阳线十字星不卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -625,10 +582,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         },
         "sell_rules": {
             "stop_loss": "T+1交易；后续交易日收盘价B低于买入日开盘价A时触发止损，成交价为B。",
-            "bullish_ma_mode": "若MA5>MA10>MA20，启用严格卖出：大跌阴线、阴包阳、阴十字星、放量阴线、长上影阴线、连续两阴均必须同时满足收盘价跌破MA5才卖出。",
-            "strict_priority2": "严格模式第二优先级：大跌阴线为当日收阴且日跌幅<-6%；阴包阳为昨日阳线、今日阴线，且今日开盘价不低于昨日收盘价、今日收盘价不高于昨日开盘价。",
-            "strict_priority3": "严格模式第三优先级：阴十字星；放量阴线为收阴、实体跌幅>2%、成交量大于前一日1.5倍；长上影阴线；连续两阴。",
-            "non_bullish_mode": "非多头排列简化卖出：无需参考MA5，阴十字星、放量阴线或连续两阴任一触发即卖出；简化放量阴线为收阴、实体跌幅>2%、成交量大于昨日。",
+            "bearish_doji": "阴线十字星：C<O 且实体占当日高低振幅比例小于10%；阳线十字星不卖出。",
+            "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)，按收盘价卖出。",
+            "two_bearish": "连续两根阴线：当日C<O且前一交易日C<O，按收盘价卖出。",
         },
         "summary": summary,
         "daily": daily_rows,
