@@ -209,6 +209,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     if not market_dates:
         raise ValueError("no trading dates available for top2 backtest")
     signals_by_date = {date: df.sort_values(["rank"]) for date, df in signals.groupby("snapshot_date")} if not signals.empty else {}
+    min_formula_score = float(getattr(args, "min_formula_score", 0.0) or 0.0)
     limit_up_pools = getattr(args, "_limit_up_pools", None)
     if limit_up_pools is None:
         limit_up_pools = load_limit_up_pools(market_dates, args)
@@ -309,7 +310,13 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             )
         holdings = remaining
 
-        selected_count = int(len(signals_by_date.get(date_text, []))) if date_text in signals_by_date else 0
+        raw_candidates = signals_by_date.get(date_text, pd.DataFrame())
+        selected_count = int(len(raw_candidates)) if date_text in signals_by_date else 0
+        if min_formula_score > 0 and not raw_candidates.empty:
+            candidates = raw_candidates[pd.to_numeric(raw_candidates["formula_score"], errors="coerce") > min_formula_score]
+        else:
+            candidates = raw_candidates
+        eligible_count = int(len(candidates)) if not candidates.empty else 0
         empty_slots = [slot for slot in range(1, args.slots + 1) if all(h.slot != slot for h in holdings)]
         skipped = 0
         limit_up_skips = 0
@@ -317,7 +324,6 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         bought_codes = {holding.code for holding in holdings}
         blocked_buy_codes: set[str] = set()
         limit_up_blocked_labels: List[str] = []
-        candidates = signals_by_date.get(date_text, pd.DataFrame())
         day_limit_up_pool = limit_up_pools.get(date_text, {}) if limit_up_pools else {}
 
         for slot in empty_slots:
@@ -427,6 +433,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         day = {
             "date": date_text,
             "selected_count": selected_count,
+            "eligible_count": eligible_count,
             "buy_count": len(buys),
             "sell_count": len(sells),
             "skipped_count": skipped,
@@ -487,6 +494,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         buy_count=("buy_count", "sum"),
         sell_count=("sell_count", "sum"),
         selected_count=("selected_count", "sum"),
+        eligible_count=("eligible_count", "sum"),
         ending_equity=("equity", "last"),
         avg_daily_ret_pct=("daily_ret_pct", "mean"),
     )
@@ -500,6 +508,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         buy_count=("buy_count", "sum"),
         sell_count=("sell_count", "sum"),
         selected_count=("selected_count", "sum"),
+        eligible_count=("eligible_count", "sum"),
         limit_up_skip_count=("limit_up_skip_count", "sum"),
         fees_paid=("fees_paid_day", "sum"),
         ending_equity=("equity", "last"),
@@ -563,6 +572,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "worst_equity": round(float(equity_series.min()), 2),
         "trading_days": len(market_dates),
         "signal_days": int(sum(1 for row in daily_rows if row["selected_count"] > 0)),
+        "eligible_signal_days": int(sum(1 for row in daily_rows if row["eligible_count"] > 0)),
         "buy_days": int(sum(1 for row in daily_rows if row["buy_count"] > 0)),
         "sell_days": int(sum(1 for row in daily_rows if row["sell_count"] > 0)),
         "full_slot_days": full_slot_days,
@@ -595,8 +605,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "每天先按当日K线处理已有仓位；T+1交易，买入日当日不卖出；"
             "若后续交易日收盘价B低于买入日开盘价A，则视为触发止损，并按B卖出；"
             "止盈条件为阴线十字星、放量阴线或连续两根阴线，按收盘价卖出，阳线十字星不卖出。"
-            "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
-            "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
+            + (f"买入候选必须满足公式评分>{min_formula_score:g}，低于或等于该分数不买入；" if min_formula_score > 0 else "")
+            + "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
+            + "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
             + buy_block_text
         ),
         "sell_rules": {
@@ -607,6 +618,8 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         },
         "buy_block_rule": {
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
+            "min_formula_score": min_formula_score,
+            "score_filter": f"formula_score>{min_formula_score:g}" if min_formula_score > 0 else "",
             "limit_up_source": args.limit_up_source,
             "limit_up_pool_dir": args.limit_up_pool_dir,
             "limit_up_data_start_date": str(getattr(args, "limit_up_data_start_date", "") or ""),
@@ -668,6 +681,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-seal-amount", type=float, default=1.0)
     parser.add_argument("--limit-up-pct", type=float, default=9.8)
     parser.add_argument("--limit-close-high-ratio", type=float, default=0.999)
+    parser.add_argument("--min-formula-score", type=float, default=0.0)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/formula_breakout_top2_backtest_1y.json")
