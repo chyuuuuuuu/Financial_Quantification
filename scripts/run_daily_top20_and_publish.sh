@@ -38,16 +38,23 @@ cp formula_breakout_cash_backtest.py "$DEPLOY_REPO/formula_breakout_cash_backtes
 cp formula_breakout_top2_backtest.py "$DEPLOY_REPO/formula_breakout_top2_backtest.py"
 cp formula_breakout_top_slots_limit_backtest.py "$DEPLOY_REPO/formula_breakout_top_slots_limit_backtest.py"
 cp formula_breakout_extend_history.py "$DEPLOY_REPO/formula_breakout_extend_history.py"
+cp live_formula_trading.py "$DEPLOY_REPO/live_formula_trading.py"
 cp app.py "$DEPLOY_REPO/app.py"
 cp templates/daily_top20.html "$DEPLOY_REPO/templates/daily_top20.html"
 cp templates/formula_breakout.html "$DEPLOY_REPO/templates/formula_breakout.html"
+cp templates/live_formula_trading.html "$DEPLOY_REPO/templates/live_formula_trading.html"
 cp scripts/run_daily_top20_and_publish.sh "$DEPLOY_REPO/scripts/run_daily_top20_and_publish.sh"
+cp scripts/run_live_formula_trading_and_publish.sh "$DEPLOY_REPO/scripts/run_live_formula_trading_and_publish.sh"
 cp .github/workflows/pages-report.yml "$DEPLOY_REPO/.github/workflows/pages-report.yml"
 cp static/index.html "$DEPLOY_REPO/static/index.html"
 cp static/daily-top20.html "$DEPLOY_REPO/static/daily-top20.html"
 cp static/formula-breakout.html "$DEPLOY_REPO/static/formula-breakout.html"
+cp static/live-trading.html "$DEPLOY_REPO/static/live-trading.html"
 cp static/reports/daily_top20.json "$DEPLOY_REPO/static/reports/daily_top20.json"
 cp static/reports/formula_breakout.json "$DEPLOY_REPO/static/reports/formula_breakout.json"
+if [ -f static/reports/live_formula_trading.json ]; then
+  cp static/reports/live_formula_trading.json "$DEPLOY_REPO/static/reports/live_formula_trading.json"
+fi
 cp static/reports/formula_breakout_*.json "$DEPLOY_REPO/static/reports/"
 
 git -C "$DEPLOY_REPO" add \
@@ -58,17 +65,25 @@ git -C "$DEPLOY_REPO" add \
   formula_breakout_top2_backtest.py \
   formula_breakout_top_slots_limit_backtest.py \
   formula_breakout_extend_history.py \
+  live_formula_trading.py \
   app.py \
   templates/daily_top20.html \
   templates/formula_breakout.html \
+  templates/live_formula_trading.html \
   scripts/run_daily_top20_and_publish.sh \
+  scripts/run_live_formula_trading_and_publish.sh \
   .github/workflows/pages-report.yml \
   static/index.html \
   static/daily-top20.html \
   static/formula-breakout.html \
+  static/live-trading.html \
   static/reports/daily_top20.json \
   static/reports/formula_breakout.json \
   static/reports/formula_breakout_*.json
+
+if [ -f "$DEPLOY_REPO/static/reports/live_formula_trading.json" ]; then
+  git -C "$DEPLOY_REPO" add static/reports/live_formula_trading.json
+fi
 
 if git -C "$DEPLOY_REPO" diff --cached --quiet; then
   echo "[$(date '+%F %T')] no public report changes to publish"

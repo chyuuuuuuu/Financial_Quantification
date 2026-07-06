@@ -7,11 +7,14 @@ on:
       - "static/**"
       - "templates/daily_top20.html"
       - "templates/formula_breakout.html"
+      - "templates/live_formula_trading.html"
       - "daily_top20_pipeline.py"
       - "formula_breakout_pipeline.py"
+      - "live_formula_trading.py"
       - "app.py"
       - ".github/workflows/pages-report.yml"
       - "scripts/run_daily_top20_and_publish.sh"
+      - "scripts/run_live_formula_trading_and_publish.sh"
   workflow_dispatch:
   schedule:
     # 16:40 Asia/Shanghai on trading weekdays. GitHub cron uses UTC.

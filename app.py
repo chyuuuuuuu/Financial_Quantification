@@ -55,6 +55,15 @@ async def formula_breakout_page():
     return HTMLResponse(content="<h1>请先创建 templates/formula_breakout.html</h1>")
 
 
+@app.get("/live-trading", response_class=HTMLResponse)
+async def live_trading_page():
+    """公式 Top3 实盘跟单页"""
+    html_path = Path(__file__).parent / "templates" / "live_formula_trading.html"
+    if html_path.exists():
+        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>请先创建 templates/live_formula_trading.html</h1>")
+
+
 @app.get("/uptrend", response_class=HTMLResponse)
 async def uptrend_page():
     """主升模型单股分析页"""
@@ -126,6 +135,21 @@ async def formula_breakout_data(date: str = ""):
         if path and path.exists():
             return JSONResponse(content=json.loads(path.read_text(encoding="utf-8")))
     return JSONResponse(status_code=404, content={"message": "暂无公式 Port 数据，请先运行 formula_breakout_pipeline.py --run-once 或生成对应日期归档"})
+
+
+@app.get("/api/live-formula-trading")
+async def live_formula_trading_data():
+    """读取公式 Top3 实盘跟单计划"""
+    import json
+
+    candidates = [
+        STATIC_DIR / "reports" / "live_formula_trading.json",
+        Path(__file__).parent / "data_cache" / "live_trading" / "latest_live_plan.json",
+    ]
+    for path in candidates:
+        if path.exists():
+            return JSONResponse(content=json.loads(path.read_text(encoding="utf-8")))
+    return JSONResponse(status_code=404, content={"message": "暂无实盘跟单数据，请先运行 live_formula_trading.py --run-once"})
 
 
 @app.get("/api/uptrend/search")
