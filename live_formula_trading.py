@@ -20,6 +20,7 @@ from formula_breakout_cash_backtest import (
     bar_for_date,
     fee_breakdown,
     prepare_history,
+    remember_take_profit_trigger,
     sell_decision,
 )
 from formula_breakout_pipeline import (
@@ -164,12 +165,16 @@ def holding_from_dict(item: Dict[str, object]) -> SlotHolding:
         entry_gross=float(item.get("entry_gross") or 0.0),
         entry_rank=int(item.get("entry_rank") or item.get("rank") or 0),
         entry_score=float(item.get("entry_score") or item.get("formula_score") or 0.0),
+        take_profit_armed=bool(item.get("take_profit_armed") or False),
+        take_profit_trigger_date=str(item.get("take_profit_trigger_date") or ""),
+        take_profit_trigger_reason=str(item.get("take_profit_trigger_reason") or ""),
+        take_profit_trigger_close=float(item.get("take_profit_trigger_close") or 0.0),
     )
 
 
 def serialize_holding(holding: SlotHolding) -> Dict[str, object]:
     out = asdict(holding)
-    for key in ["entry_price", "entry_open", "entry_fee", "entry_gross", "entry_score"]:
+    for key in ["entry_price", "entry_open", "entry_fee", "entry_gross", "entry_score", "take_profit_trigger_close"]:
         out[key] = round(float(out[key]), 4 if key != "entry_fee" and key != "entry_gross" else 2)
     return out
 
@@ -343,7 +348,9 @@ def build_plan(
         decision = sell_decision(row, holding)  # type: ignore[arg-type]
         reasons = list(decision["reasons"])
         if not reasons:
+            remember_take_profit_trigger(holding, date_text, decision)
             remaining.append(holding)
+            hold_reason = "止盈信号已触发，未跌破MA5，继续持有" if decision.get("take_profit_armed") else "未触发止盈止损"
             operations.append(
                 {
                     "action": "hold",
@@ -352,7 +359,8 @@ def build_plan(
                     "name": holding.name,
                     "shares": holding.shares,
                     "price": round(float(row.get("收盘") or holding.entry_price), 4),
-                    "reason": "未触发止盈止损",
+                    "ma5_close": round(float(decision["ma5_close"]), 4) if decision.get("ma5_close") is not None else None,
+                    "reason": hold_reason,
                 }
             )
             continue
@@ -597,7 +605,7 @@ def build_report(
             "schedule": "交易日15:00生成当日公式Top3跟单计划。",
             "position": "本金15000，三等分仓位；每个空槽使用剩余现金按剩余槽位均分后买入整手。",
             "buy": "按公式评分从高到低补齐空槽；涨停不可买或单槽资金不足一手时顺延下一名。",
-            "sell": "T+1；后续交易日收盘价B小于等于买入日开盘价A时卖出；十字星或放量阴线也卖出。",
+            "sell": "T+1；后续交易日收盘价B小于等于买入日开盘价A时止损卖出；未触发止损时，阴线十字星、放量阴线或连续两根阴线先触发止盈观察，收盘跌破MA5才卖出，阳线十字星不卖出。",
             "fees": {
                 "commission_rate": args.commission_rate,
                 "min_commission": args.min_commission,

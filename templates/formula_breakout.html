@@ -696,7 +696,7 @@ function renderNotes(data) {
     const avgN = rows.length ? rows.reduce((s, r) => s + Number(r.bars_since_triple || 0), 0) / rows.length : null;
     const avgV10 = rows.length ? rows.reduce((s, r) => s + Number(r.vol_ma10_vs_triple || 0), 0) / rows.length : null;
     document.getElementById('portNote').textContent = `当前快照共 ${data.selected_count || 0} 只，按公式评分和成交额排序；评分=45基础+缩量+三倍量+时间+MACD+突破-热度扣分，平均 N=${avgN == null ? '-' : fmt(avgN, 1)}。`;
-    document.getElementById('volumeNote').textContent = `选股三倍阳量=V>3*REF(V,1)且C>O；缩量=MA5/MA10成交量低于三倍阳当日量，当前平均MA10/三倍量=${avgV10 == null ? '-' : fmt(avgV10, 2)}。卖出为阴线十字星、放量阴线=C<O且V>REF(V,1)，或连续两根阴线；阳线十字星不卖出。`;
+    document.getElementById('volumeNote').textContent = `选股三倍阳量=V>3*REF(V,1)且C>O；缩量=MA5/MA10成交量低于三倍阳当日量，当前平均MA10/三倍量=${avgV10 == null ? '-' : fmt(avgV10, 2)}。卖出为阴线十字星、放量阴线=C<O且V>REF(V,1)，或连续两根阴线先触发止盈观察；收盘跌破MA5才卖出，阳线十字星不卖出。`;
     const fb = data.recent_feedback || {};
     document.getElementById('feedbackNote').textContent = fb.rows ? `最近 ${fb.rows} 条已完成次日回测，均值 ${fmt(fb.avg_next_ret_pct, 2)}%，胜率 ${fmt(fb.win_rate_pct, 1)}%。` : '暂无完成的未来交易日反馈，后续快照会自动补齐。';
 }

@@ -21,6 +21,7 @@ from formula_breakout_cash_backtest import (
     bar_for_date,
     build_signals_and_histories,
     fee_breakdown,
+    remember_take_profit_trigger,
     sell_decision,
 )
 from formula_breakout_pipeline import clean_records, normalize_code, now_text
@@ -42,6 +43,10 @@ class SlotHolding:
     entry_gross: float
     entry_rank: int
     entry_score: float
+    take_profit_armed: bool = False
+    take_profit_trigger_date: str = ""
+    take_profit_trigger_reason: str = ""
+    take_profit_trigger_close: float = 0.0
 
 
 def asof_close(history: pd.DataFrame, date_text: str) -> Optional[float]:
@@ -255,6 +260,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             decision = sell_decision(row, holding)  # type: ignore[arg-type]
             reasons = list(decision["reasons"])
             if not reasons:
+                remember_take_profit_trigger(holding, date_text, decision)
                 remaining.append(holding)
                 continue
             price = float(decision["price"])
@@ -588,17 +594,19 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "assumption": (
             "每天先按当日K线处理已有仓位；T+1交易，买入日当日不卖出；"
             "若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，"
-            "并按B卖出；止盈条件为阴线十字星、放量阴线或连续两根阴线，"
-            "按收盘价卖出，阳线十字星不卖出。"
+            "并按B卖出；在未触发止损时，止盈信号为阴线十字星、放量阴线或连续两根阴线，"
+            "信号出现后还需收盘价跌破MA5才按收盘价卖出，若未跌破MA5则继续持有直到后续收盘跌破MA5；"
+            "阳线十字星不卖出。"
             "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
             "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
             + buy_block_text
         ),
         "sell_rules": {
             "stop_loss": "T+1交易；买入日后续K线收盘价B小于等于买入日开盘价A时触发止损，成交价为B。",
-            "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)，按收盘价卖出。",
-            "bearish_doji": "阴线十字星：C<O 且实体不超过当日高低振幅的10%，按收盘价卖出；阳线十字星不卖出。",
-            "two_bearish": "连续两根阴线：当日 C<O 且前一交易日 C<O，按收盘价卖出。",
+            "bearish_doji": "阴线十字星：C<O 且实体不超过当日高低振幅的10%；阳线十字星不卖出。",
+            "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
+            "two_bearish": "连续两根阴线：当日 C<O 且前一交易日 C<O。",
+            "ma5_confirm": "止损未触发时，任一止盈信号出现后，只有收盘价跌破5日均线才卖出；未跌破则继续持有并等待后续跌破MA5。",
         },
         "buy_block_rule": {
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),

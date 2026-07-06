@@ -36,6 +36,10 @@ class Holding:
     entry_gross: float
     entry_rank: int
     entry_score: float
+    take_profit_armed: bool = False
+    take_profit_trigger_date: str = ""
+    take_profit_trigger_reason: str = ""
+    take_profit_trigger_close: float = 0.0
 
 
 def prepare_history(path: Path) -> Optional[pd.DataFrame]:
@@ -56,6 +60,7 @@ def prepare_history(path: Path) -> Optional[pd.DataFrame]:
     hist["prev_open"] = hist["开盘"].shift(1)
     hist["prev_close"] = hist["收盘"].shift(1)
     hist["prev_volume"] = hist["成交量"].shift(1)
+    hist["ma5_close"] = hist["收盘"].rolling(5, min_periods=5).mean()
     return hist.reset_index(drop=True)
 
 
@@ -104,23 +109,83 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
     price = close
     execution_time = "收盘"
     trigger_price: Optional[float] = None
+    ma5_close = row_float(row, "ma5_close")
+    close_below_ma5 = ma5_close > 0 and close < ma5_close
     if stop_trigger_price > 0 and close <= stop_trigger_price:
         reasons.append("收盘价小于等于买入日开盘价止损")
         trigger_price = stop_trigger_price
         price = close
         execution_time = "收盘触发止损"
+        return {
+            "reasons": reasons,
+            "price": price,
+            "execution_time": execution_time,
+            "trigger_price": trigger_price,
+            "take_profit_armed": False,
+            "take_profit_signal_reasons": [],
+            "ma5_close": ma5_close if ma5_close > 0 else None,
+            "close_below_ma5": close_below_ma5,
+        }
+
+    take_profit_reasons: List[str] = []
     if is_bearish_doji(row):
-        reasons.append("阴线十字星")
+        take_profit_reasons.append("阴线十字星")
     if is_volume_bearish(row):
-        reasons.append("放量阴线")
+        take_profit_reasons.append("放量阴线")
     if is_two_bearish(row):
-        reasons.append("连续两根阴线")
+        take_profit_reasons.append("连续两根阴线")
+
+    take_profit_armed = bool(getattr(holding, "take_profit_armed", False))
+    if take_profit_armed or take_profit_reasons:
+        if close_below_ma5:
+            if take_profit_reasons:
+                reasons.extend(take_profit_reasons)
+            else:
+                previous_reason = str(getattr(holding, "take_profit_trigger_reason", "") or "前期止盈信号")
+                reasons.append(f"前期止盈信号({previous_reason})")
+            reasons.append("收盘价跌破MA5确认止盈")
+            execution_time = "收盘跌破MA5止盈"
+        else:
+            return {
+                "reasons": [],
+                "price": price,
+                "execution_time": "止盈信号待MA5确认",
+                "trigger_price": None,
+                "take_profit_armed": True,
+                "take_profit_signal_reasons": take_profit_reasons,
+                "ma5_close": ma5_close if ma5_close > 0 else None,
+                "close_below_ma5": close_below_ma5,
+            }
     return {
         "reasons": reasons,
         "price": price,
         "execution_time": execution_time,
         "trigger_price": trigger_price,
+        "take_profit_armed": False,
+        "take_profit_signal_reasons": take_profit_reasons,
+        "ma5_close": ma5_close if ma5_close > 0 else None,
+        "close_below_ma5": close_below_ma5,
     }
+
+
+def remember_take_profit_trigger(holding: object, date_text: str, decision: Dict[str, object]) -> None:
+    if not decision.get("take_profit_armed"):
+        return
+    setattr(holding, "take_profit_armed", True)
+    if getattr(holding, "take_profit_trigger_date", ""):
+        return
+    reasons = decision.get("take_profit_signal_reasons")
+    if isinstance(reasons, list) and reasons:
+        reason_text = "；".join(str(item) for item in reasons)
+    else:
+        reason_text = "前期止盈信号"
+    setattr(holding, "take_profit_trigger_date", date_text)
+    setattr(holding, "take_profit_trigger_reason", reason_text)
+    close_value = decision.get("price")
+    try:
+        setattr(holding, "take_profit_trigger_close", float(close_value or 0.0))
+    except (TypeError, ValueError):
+        setattr(holding, "take_profit_trigger_close", 0.0)
 
 
 def sell_reasons(row: pd.Series, holding: Holding) -> List[str]:
@@ -241,6 +306,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             decision = sell_decision(row, holding)
             reasons = list(decision["reasons"])
             if not reasons:
+                remember_take_profit_trigger(holding, date_text, decision)
                 remaining.append(holding)
                 continue
             price = float(decision["price"])
@@ -472,7 +538,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，并按B卖出；止盈条件为阴线十字星、放量阴线或连续两根阴线，按收盘价卖出，阳线十字星不卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，并按B卖出；在未触发止损时，止盈信号为阴线十字星、放量阴线或连续两根阴线，信号出现后还需收盘价跌破MA5才按收盘价卖出，若未跌破MA5则继续持有直到后续收盘跌破MA5；阳线十字星不卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -481,9 +547,10 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         },
         "sell_rules": {
             "stop_loss": "T+1交易；买入日后续K线收盘价B小于等于买入日开盘价A时触发止损，成交价为B。",
-            "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
             "bearish_doji": "阴线十字星：C<O 且实体不超过当日高低振幅的10%；阳线十字星不卖出。",
+            "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
             "two_bearish": "连续两根阴线：当日 C<O 且前一交易日 C<O。",
+            "ma5_confirm": "止损未触发时，任一止盈信号出现后，只有收盘价跌破5日均线才卖出；未跌破则继续持有并等待后续跌破MA5。",
         },
         "summary": summary,
         "daily": daily_rows,
