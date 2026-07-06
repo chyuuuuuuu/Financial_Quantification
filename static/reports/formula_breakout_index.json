@@ -1,12 +1,19 @@
 {
-  "generated_at": "2026-07-03T15:52:59",
+  "generated_at": "2026-07-06T15:54:18",
   "dates": [
+    {
+      "date": "2026-07-06",
+      "file": "formula_breakout_20260706.json",
+      "selected_count": 8,
+      "avg_formula_score": 82.388,
+      "generated_at": "2026-07-06T15:54:18"
+    },
     {
       "date": "2026-07-03",
       "file": "formula_breakout_20260703.json",
-      "selected_count": 10,
-      "avg_formula_score": 82.3559,
-      "generated_at": "2026-07-03T15:52:58"
+      "selected_count": 15,
+      "avg_formula_score": 84.0417,
+      "generated_at": "2026-07-06T14:14:45"
     },
     {
       "date": "2026-07-02",

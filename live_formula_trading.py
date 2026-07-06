@@ -91,6 +91,7 @@ def make_formula_args(args: argparse.Namespace) -> SimpleNamespace:
         static_dir=args.static_dir,
         template=args.formula_template,
         refresh=bool(args.refresh),
+        quote_source=str(args.quote_source),
         workers=int(args.workers),
         retry=int(args.retry),
         progress_every=int(args.progress_every),
@@ -693,6 +694,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--force-apply", action="store_true")
     parser.add_argument("--reset-state", action="store_true")
     parser.add_argument("--refresh", action="store_true")
+    parser.add_argument("--quote-source", choices=["tencent", "pytdx", "auto"], default="auto")
     parser.add_argument("--allow-stale-target", action="store_true")
     parser.add_argument("--workers", type=int, default=20)
     parser.add_argument("--retry", type=int, default=2)

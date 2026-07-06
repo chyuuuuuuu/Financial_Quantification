@@ -142,6 +142,8 @@ def run_refresh(args: argparse.Namespace, run_time: datetime) -> None:
         str(args.progress_every),
         "--refresh-only",
         "--quote-only",
+        "--quote-source",
+        args.quote_source,
         "--no-skip-current",
     ]
     print(f"[{now_text()}] refresh current bars: {' '.join(cmd)}")
@@ -603,6 +605,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--static-dir", default="static")
     parser.add_argument("--template", default="templates/formula_breakout.html")
     parser.add_argument("--refresh", action="store_true")
+    parser.add_argument("--quote-source", choices=["tencent", "pytdx", "auto"], default="auto")
     parser.add_argument("--workers", type=int, default=20)
     parser.add_argument("--retry", type=int, default=2)
     parser.add_argument("--progress-every", type=int, default=600)
