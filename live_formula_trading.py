@@ -350,7 +350,7 @@ def build_plan(
         if not reasons:
             remember_take_profit_trigger(holding, date_text, decision)
             remaining.append(holding)
-            hold_reason = "止盈信号未跌破MA5，继续持有并等待下次止盈信号" if decision.get("take_profit_signal_reasons") else "未触发止盈止损"
+            hold_reason = "非止损卖出信号未跌破MA5，继续持有" if decision.get("take_profit_signal_reasons") else "未触发止盈止损"
             operations.append(
                 {
                     "action": "hold",
@@ -605,7 +605,7 @@ def build_report(
             "schedule": "交易日15:00生成当日公式Top3跟单计划。",
             "position": "本金15000，三等分仓位；每个空槽使用剩余现金按剩余槽位均分后买入整手。",
             "buy": "按公式评分从高到低补齐空槽；涨停不可买或单槽资金不足一手时顺延下一名。",
-            "sell": "T+1；后续交易日收盘价B小于等于买入日开盘价A时止损卖出；未触发止损时，阴线十字星、放量阴线或连续两根阴线先触发止盈观察，若当日收盘跌破MA5才卖出，未跌破则等待下次止盈信号，阳线十字星不卖出。",
+            "sell": "T+1；14:57观察，日线用收盘价近似；收盘价B低于买入日开盘价A时无条件止损。未止损时，大跌阴线/阴包阳、阴十字星/放量阴线/长上影阴线/连续两阴都必须收盘跌破MA5才卖出。",
             "fees": {
                 "commission_rate": args.commission_rate,
                 "min_commission": args.min_commission,
