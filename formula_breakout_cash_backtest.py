@@ -70,12 +70,26 @@ def is_doji(row: pd.Series) -> bool:
     return abs(close - open_) <= span * 0.10
 
 
+def is_bearish_doji(row: pd.Series) -> bool:
+    open_ = float(row.get("开盘") or 0.0)
+    close = float(row.get("收盘") or 0.0)
+    return close < open_ and is_doji(row)
+
+
 def is_volume_bearish(row: pd.Series) -> bool:
     open_ = float(row.get("开盘") or 0.0)
     close = float(row.get("收盘") or 0.0)
     volume = float(row.get("成交量") or 0.0)
     prev_volume = float(row.get("prev_volume") or 0.0)
     return close < open_ and prev_volume > 0 and volume > prev_volume
+
+
+def is_two_bearish(row: pd.Series) -> bool:
+    open_ = float(row.get("开盘") or 0.0)
+    close = float(row.get("收盘") or 0.0)
+    prev_open = float(row.get("prev_open") or 0.0)
+    prev_close = float(row.get("prev_close") or 0.0)
+    return close < open_ and prev_close < prev_open
 
 
 def row_float(row: pd.Series, field: str) -> float:
@@ -95,10 +109,12 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
         trigger_price = stop_trigger_price
         price = close
         execution_time = "收盘触发止损"
-    if is_doji(row):
-        reasons.append("十字星")
+    if is_bearish_doji(row):
+        reasons.append("阴线十字星")
     if is_volume_bearish(row):
         reasons.append("放量阴线")
+    if is_two_bearish(row):
+        reasons.append("连续两根阴线")
     return {
         "reasons": reasons,
         "price": price,
@@ -456,7 +472,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，并按B卖出；止盈条件为十字星或放量阴线，按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天先按当日K线检查已有仓位卖出；T+1交易，买入日当日不卖出；若后续交易日收盘价B小于等于买入日开盘价A，则视为触发止损，并按B卖出；止盈条件为阴线十字星、放量阴线或连续两根阴线，按收盘价卖出，阳线十字星不卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -466,7 +482,8 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "sell_rules": {
             "stop_loss": "T+1交易；买入日后续K线收盘价B小于等于买入日开盘价A时触发止损，成交价为B。",
             "volume_bearish": "放量阴线：C<O 且 V>REF(V,1)。",
-            "doji": "十字星：实体不超过当日高低振幅的10%，不区分阴阳。",
+            "bearish_doji": "阴线十字星：C<O 且实体不超过当日高低振幅的10%；阳线十字星不卖出。",
+            "two_bearish": "连续两根阴线：当日 C<O 且前一交易日 C<O。",
         },
         "summary": summary,
         "daily": daily_rows,
