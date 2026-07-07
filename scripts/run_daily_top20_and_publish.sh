@@ -26,6 +26,7 @@ if [ ! -d "$DEPLOY_REPO/.git" ]; then
   git clone "$REPO_URL" "$DEPLOY_REPO"
 fi
 
+git -C "$DEPLOY_REPO" remote set-url origin "$REPO_URL"
 git -C "$DEPLOY_REPO" fetch origin "$BRANCH"
 git -C "$DEPLOY_REPO" checkout "$BRANCH"
 git -C "$DEPLOY_REPO" pull --ff-only origin "$BRANCH"

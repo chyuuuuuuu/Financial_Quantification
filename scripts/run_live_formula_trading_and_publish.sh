@@ -23,6 +23,7 @@ if [ ! -d "$DEPLOY_REPO/.git" ]; then
   git clone "$REPO_URL" "$DEPLOY_REPO"
 fi
 
+git -C "$DEPLOY_REPO" remote set-url origin "$REPO_URL"
 git -C "$DEPLOY_REPO" fetch origin "$BRANCH"
 git -C "$DEPLOY_REPO" checkout "$BRANCH"
 git -C "$DEPLOY_REPO" pull --ff-only origin "$BRANCH"
@@ -40,6 +41,9 @@ cp static/live-trading.html "$DEPLOY_REPO/static/live-trading.html"
 cp static/formula-breakout.html "$DEPLOY_REPO/static/formula-breakout.html"
 cp static/daily-top20.html "$DEPLOY_REPO/static/daily-top20.html"
 cp static/reports/live_formula_trading.json "$DEPLOY_REPO/static/reports/live_formula_trading.json"
+cp static/reports/formula_breakout.json "$DEPLOY_REPO/static/reports/formula_breakout.json"
+cp static/reports/formula_breakout_index.json "$DEPLOY_REPO/static/reports/formula_breakout_index.json"
+cp static/reports/formula_breakout_*.json "$DEPLOY_REPO/static/reports/"
 cp scripts/run_live_formula_trading_and_publish.sh "$DEPLOY_REPO/scripts/run_live_formula_trading_and_publish.sh"
 cp .github/workflows/pages-report.yml "$DEPLOY_REPO/.github/workflows/pages-report.yml"
 
@@ -56,6 +60,9 @@ git -C "$DEPLOY_REPO" add \
   static/formula-breakout.html \
   static/daily-top20.html \
   static/reports/live_formula_trading.json \
+  static/reports/formula_breakout.json \
+  static/reports/formula_breakout_index.json \
+  static/reports/formula_breakout_*.json \
   scripts/run_live_formula_trading_and_publish.sh \
   .github/workflows/pages-report.yml
 
