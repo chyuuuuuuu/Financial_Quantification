@@ -33,6 +33,144 @@ def tencent_symbol(code: str) -> str:
     return ("sh" if code.startswith("6") else "sz") + code
 
 
+def tdx_market(code: str) -> int:
+    return 1 if code.startswith("6") else 0
+
+
+def parse_tdx_hosts(raw: str) -> List[Tuple[str, int]]:
+    hosts: List[Tuple[str, int]] = []
+    for item in str(raw or "").split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if ":" in item:
+            host, port_text = item.rsplit(":", 1)
+        else:
+            host, port_text = item, "7709"
+        try:
+            hosts.append((host.strip(), int(port_text)))
+        except ValueError:
+            continue
+    return hosts
+
+
+def quote_volume_to_lots(volume: float, amount: float, close: float) -> float:
+    if not (np.isfinite(volume) and volume > 0):
+        return 0.0
+    if np.isfinite(amount) and amount > 0 and np.isfinite(close) and close > 0:
+        amount_per_unit = amount / volume
+        if amount_per_unit < close * 20.0:
+            return volume / 100.0
+    return volume
+
+
+class TdxQuoteClient:
+    def __init__(self, hosts: List[Tuple[str, int]], retry: int = 3) -> None:
+        self.hosts = hosts
+        self.retry = max(1, int(retry))
+        self.api = None
+        self.connected_host = ""
+        self.import_error = ""
+
+    def _load_api(self):
+        if self.api is not None:
+            return self.api
+        try:
+            from pytdx.hq import TdxHq_API
+        except Exception as exc:  # pragma: no cover - optional dependency guard
+            self.import_error = f"{type(exc).__name__}: {exc}"
+            return None
+        self.api = TdxHq_API(raise_exception=True, auto_retry=True)
+        return self.api
+
+    def connect(self) -> Tuple[bool, str]:
+        api = self._load_api()
+        if api is None:
+            return False, f"pytdx_import_failed: {self.import_error or 'pytdx not installed'}"
+        if self.connected_host:
+            return True, ""
+        last_error = ""
+        for host, port in self.hosts:
+            for attempt in range(self.retry):
+                try:
+                    if api.connect(host, port, time_out=3):
+                        self.connected_host = f"{host}:{port}"
+                        return True, ""
+                except Exception as exc:
+                    last_error = f"{host}:{port} {type(exc).__name__}: {exc}"
+                    time.sleep(0.2 * (attempt + 1))
+        return False, last_error or "no_tdx_host_connected"
+
+    def fetch_quotes(self, codes: List[str], target_date: str) -> Tuple[List[Dict[str, object]], str]:
+        ok, error = self.connect()
+        if not ok:
+            return [], error
+        if target_date != datetime.now().strftime("%Y-%m-%d"):
+            return [], "pytdx_quote_has_no_trade_date_for_non_today_target"
+        symbols = [(tdx_market(code), code) for code in codes]
+        last_error = ""
+        for attempt in range(self.retry):
+            try:
+                rows_raw = self.api.get_security_quotes(symbols)
+                rows: List[Dict[str, object]] = []
+                for item in rows_raw or []:
+                    row = parse_tdx_quote(item, target_date)
+                    if row is not None:
+                        rows.append(row)
+                return rows, ""
+            except Exception as exc:
+                last_error = f"{self.connected_host} {type(exc).__name__}: {exc}"
+                self.connected_host = ""
+                try:
+                    self.api.disconnect()
+                except Exception:
+                    pass
+                self.connect()
+                time.sleep(0.2 * (attempt + 1))
+        return [], last_error or "tdx_quote_empty"
+
+    def close(self) -> None:
+        if self.api is not None:
+            try:
+                self.api.disconnect()
+            except Exception:
+                pass
+
+
+def parse_tdx_quote(item: Dict[str, object], target_date: str) -> Optional[Dict[str, object]]:
+    try:
+        code = normalize_code(item.get("code", ""))
+        close = float(item.get("price") or 0.0)
+        prev_close = float(item.get("last_close") or 0.0)
+        open_ = float(item.get("open") or close or prev_close)
+        high = float(item.get("high") or close or open_)
+        low = float(item.get("low") or close or open_)
+        amount = float(item.get("amount") or 0.0)
+        volume_raw = float(item.get("vol") or 0.0)
+    except Exception:
+        return None
+    if not code or close <= 0:
+        return None
+    volume = quote_volume_to_lots(volume_raw, amount, close)
+    chg = close - prev_close if prev_close > 0 else 0.0
+    pct_chg = chg / prev_close * 100.0 if prev_close > 0 else 0.0
+    amplitude = (high - low) / prev_close * 100.0 if prev_close > 0 else 0.0
+    return {
+        "日期": target_date,
+        "股票代码": code,
+        "开盘": open_,
+        "收盘": close,
+        "最高": high,
+        "最低": low,
+        "成交量": volume,
+        "成交额": amount,
+        "振幅": amplitude,
+        "涨跌幅": pct_chg,
+        "涨跌额": chg,
+        "换手率": 0.0,
+    }
+
+
 def fetch_tencent_recent(code: str, retry: int = 3) -> Tuple[Optional[pd.DataFrame], str]:
     symbol = tencent_symbol(code)
     url = f"https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={symbol},day,,,20,qfq"
@@ -170,6 +308,48 @@ def fetch_tencent_quote_batch(codes: List[str], target_date: str, retry: int = 3
     return [], last_error
 
 
+def fetch_quote_batch(
+    codes: List[str],
+    args: argparse.Namespace,
+    tdx_client: Optional[TdxQuoteClient],
+) -> Tuple[List[Dict[str, object]], str, str]:
+    source = str(getattr(args, "quote_source", "tencent"))
+    if source == "tencent":
+        rows, error = fetch_tencent_quote_batch(codes, args.target_date, retry=args.retry)
+        for row in rows:
+            row["_quote_source"] = "tencent"
+        return rows, error, "tencent"
+    if source == "pytdx":
+        if tdx_client is None:
+            return [], "tdx_client_unavailable", "pytdx"
+        rows, error = tdx_client.fetch_quotes(codes, args.target_date)
+        for row in rows:
+            row["_quote_source"] = "pytdx"
+        return rows, error, "pytdx"
+
+    errors: List[str] = []
+    rows: List[Dict[str, object]] = []
+    if tdx_client is not None:
+        tdx_rows, tdx_error = tdx_client.fetch_quotes(codes, args.target_date)
+        for row in tdx_rows:
+            row["_quote_source"] = "pytdx"
+        rows.extend(tdx_rows)
+        if tdx_error:
+            errors.append(f"pytdx: {tdx_error}")
+    returned = {str(row["股票代码"]) for row in rows}
+    missing = [code for code in codes if code not in returned]
+    if missing:
+        tencent_rows, tencent_error = fetch_tencent_quote_batch(missing, args.target_date, retry=args.retry)
+        for row in tencent_rows:
+            row["_quote_source"] = "tencent"
+        rows.extend(tencent_rows)
+        if tencent_error:
+            errors.append(f"tencent: {tencent_error}")
+    row_sources = {str(row.get("_quote_source") or "") for row in rows}
+    combined_source = "+".join(sorted(src for src in row_sources if src)) if row_sources else "auto"
+    return rows, "; ".join(errors), combined_source
+
+
 def fetch_eastmoney_recent(code: str, begin: str, end: str, retry: int = 3) -> Tuple[Optional[pd.DataFrame], str]:
     url = (
         "https://push2his.eastmoney.com/api/qt/stock/kline/get"
@@ -220,6 +400,10 @@ def fetch_eastmoney_recent(code: str, begin: str, end: str, retry: int = 3) -> T
 def merge_history(path: Path, latest: pd.DataFrame) -> Tuple[str, int]:
     if path.exists():
         old = pd.read_csv(path)
+        if not latest.empty and "日期" in latest.columns and "日期" in old.columns:
+            latest_dates = pd.to_datetime(latest["日期"], errors="coerce").dt.strftime("%Y-%m-%d")
+            old_dates = pd.to_datetime(old["日期"], errors="coerce").dt.strftime("%Y-%m-%d")
+            old = old[~old_dates.isin(set(latest_dates.dropna()))]
         merged = pd.concat([old, latest], ignore_index=True)
     else:
         merged = latest
@@ -303,54 +487,71 @@ def refresh_histories_by_quote(items: List[StockItem], args: argparse.Namespace)
     hist_dir = Path(args.history_dir)
     hist_dir.mkdir(parents=True, exist_ok=True)
     statuses: Dict[str, Dict[str, object]] = {
-        item.code: {"code": item.code, "name": item.name, "ok": False, "latest_date": "", "added_rows": 0, "error": "not_requested"}
+        item.code: {"code": item.code, "name": item.name, "ok": False, "latest_date": "", "added_rows": 0, "source": "", "error": "not_requested"}
         for item in items
     }
     codes = [item.code for item in items]
     code_to_name = {item.code: item.name for item in items}
     batches = [codes[i : i + args.quote_batch_size] for i in range(0, len(codes), args.quote_batch_size)]
+    tdx_client: Optional[TdxQuoteClient] = None
+    if args.quote_source in {"pytdx", "auto"}:
+        tdx_client = TdxQuoteClient(parse_tdx_hosts(args.tdx_hosts), retry=args.retry)
     done = 0
-    for batch_no, batch in enumerate(batches, start=1):
-        rows, error = fetch_tencent_quote_batch(batch, args.target_date, retry=args.retry)
-        returned = {str(row["股票代码"]): row for row in rows}
-        for code in batch:
-            path = hist_dir / f"{code}.csv"
-            if code in returned:
-                try:
-                    latest_date, added_rows = merge_history(path, pd.DataFrame([returned[code]]))
-                    statuses[code] = {
-                        "code": code,
-                        "name": code_to_name.get(code, code),
-                        "ok": True,
-                        "latest_date": latest_date,
-                        "added_rows": added_rows,
-                        "error": "",
-                    }
-                except Exception as exc:
+    try:
+        for batch_no, batch in enumerate(batches, start=1):
+            rows, error, source = fetch_quote_batch(batch, args, tdx_client)
+            returned = {str(row["股票代码"]): row for row in rows}
+            for code in batch:
+                path = hist_dir / f"{code}.csv"
+                if code in returned:
+                    row = dict(returned[code])
+                    row_source = str(row.pop("_quote_source", source) or source)
+                    try:
+                        latest_date, added_rows = merge_history(path, pd.DataFrame([row]))
+                        statuses[code] = {
+                            "code": code,
+                            "name": code_to_name.get(code, code),
+                            "ok": True,
+                            "latest_date": latest_date,
+                            "added_rows": added_rows,
+                            "source": row_source,
+                            "error": "",
+                        }
+                    except Exception as exc:
+                        statuses[code] = {
+                            "code": code,
+                            "name": code_to_name.get(code, code),
+                            "ok": False,
+                            "latest_date": "",
+                            "added_rows": 0,
+                            "source": row_source,
+                            "error": f"{type(exc).__name__}: {exc}",
+                        }
+                else:
                     statuses[code] = {
                         "code": code,
                         "name": code_to_name.get(code, code),
                         "ok": False,
                         "latest_date": "",
                         "added_rows": 0,
-                        "error": f"{type(exc).__name__}: {exc}",
+                        "source": source,
+                        "error": error or "no_target_quote",
                     }
-            else:
-                statuses[code] = {
-                    "code": code,
-                    "name": code_to_name.get(code, code),
-                    "ok": False,
-                    "latest_date": "",
-                    "added_rows": 0,
-                    "error": error or "no_target_quote",
-                }
-        done += len(batch)
-        if batch_no % max(1, args.progress_every // max(1, args.quote_batch_size)) == 0 or done >= len(codes):
-            values = list(statuses.values())
-            ok = sum(1 for row in values if row["ok"])
-            latest_616 = sum(1 for row in values if row["latest_date"] == args.target_date)
-            print(f"[{_now_text()}] quote refresh progress {done}/{len(codes)}, ok={ok}, latest_{args.target_date}={latest_616}", flush=True)
-        time.sleep(args.quote_sleep)
+            done += len(batch)
+            if batch_no % max(1, args.progress_every // max(1, args.quote_batch_size)) == 0 or done >= len(codes):
+                values = list(statuses.values())
+                ok = sum(1 for row in values if row["ok"])
+                latest_616 = sum(1 for row in values if row["latest_date"] == args.target_date)
+                sources = pd.Series([str(row.get("source") or "") for row in values if row.get("ok")]).value_counts().head(3).to_dict()
+                print(
+                    f"[{_now_text()}] quote refresh progress {done}/{len(codes)}, ok={ok}, "
+                    f"latest_{args.target_date}={latest_616}, sources={sources}",
+                    flush=True,
+                )
+            time.sleep(args.quote_sleep)
+    finally:
+        if tdx_client is not None:
+            tdx_client.close()
     return pd.DataFrame(list(statuses.values()))
 
 
@@ -404,8 +605,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-current", action="store_true", default=True)
     parser.add_argument("--no-skip-current", dest="skip_current", action="store_false")
     parser.add_argument("--quote-only", action="store_true", default=False)
+    parser.add_argument("--quote-source", choices=["tencent", "pytdx", "auto"], default="tencent")
     parser.add_argument("--quote-batch-size", type=int, default=60)
     parser.add_argument("--quote-sleep", type=float, default=0.15)
+    parser.add_argument(
+        "--tdx-hosts",
+        default="119.147.212.81:7709,180.153.18.170:7709,180.153.18.171:7709,202.108.253.130:7709,47.103.48.45:7709",
+    )
     parser.add_argument("--eastmoney-only", action="store_true", default=False)
     parser.add_argument("--refresh-only", action="store_true", default=False)
     parser.add_argument("--require-entry-close-retest", action="store_true", default=False)
@@ -456,6 +662,8 @@ def main() -> None:
             "target_date": args.target_date,
             "target_date_count": int((statuses["latest_date"] == args.target_date).sum()) if not statuses.empty else 0,
             "latest_date_counts": latest_counts,
+            "quote_source": str(args.quote_source),
+            "source_counts": statuses["source"].value_counts().head(10).to_dict() if "source" in statuses.columns else {},
             "history_dir": str(args.history_dir),
             "output_dir": str(out_dir),
             "eastmoney_only": bool(args.eastmoney_only),
@@ -522,6 +730,8 @@ def main() -> None:
         "target_date": args.target_date,
         "target_date_count": int((statuses["latest_date"] == args.target_date).sum()) if not statuses.empty else 0,
         "latest_date_counts": latest_counts,
+        "quote_source": str(args.quote_source),
+        "source_counts": statuses["source"].value_counts().head(10).to_dict() if "source" in statuses.columns else {},
         "histories": len(histories),
         "candidate_rows": int(len(candidates)),
         "require_entry_close_retest": bool(args.require_entry_close_retest),
