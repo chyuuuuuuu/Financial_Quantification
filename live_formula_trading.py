@@ -613,7 +613,7 @@ def build_report(
             "schedule": "交易日15:00生成当日公式Top3跟单计划。",
             "position": "本金15000，三等分仓位；每个空槽使用剩余现金按剩余槽位均分后买入整手。",
             "buy": buy_rule_text(args),
-            "sell": "T+1；后续交易日收盘价B低于买入日开盘价A时止损卖出；未止损时，放量阴线、阴十字星、连续两阴、长上影阴线、阴包阳任一成立即卖出。",
+            "sell": "T+1；买入日当日不卖出；后续交易日收盘时，放量阴线、阴十字星、连续两阴任一成立即按收盘价卖出。",
             "fees": {
                 "commission_rate": args.commission_rate,
                 "min_commission": args.min_commission,

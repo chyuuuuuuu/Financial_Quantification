@@ -160,26 +160,10 @@ def is_bullish_ma_alignment(row: pd.Series) -> bool:
 
 def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
     close = row_float(row, "收盘")
-    stop_trigger_price = float(getattr(holding, "entry_open", 0.0) or 0.0)
     reasons: List[str] = []
     price = close
     execution_time = "收盘"
     trigger_price: Optional[float] = None
-    if stop_trigger_price > 0 and close < stop_trigger_price:
-        reasons.append("收盘价低于买入日开盘价止损")
-        trigger_price = stop_trigger_price
-        price = close
-        execution_time = "收盘触发止损"
-        return {
-            "reasons": reasons,
-            "price": price,
-            "execution_time": execution_time,
-            "trigger_price": trigger_price,
-            "take_profit_armed": False,
-            "take_profit_signal_reasons": [],
-            "ma5_close": None,
-            "close_below_ma5": False,
-        }
 
     take_profit_reasons: List[str] = []
     if is_volume_bearish(row):
@@ -188,13 +172,9 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
         take_profit_reasons.append("阴线十字星")
     if is_two_bearish(row):
         take_profit_reasons.append("连续两根阴线")
-    if is_long_upper_shadow_bearish(row):
-        take_profit_reasons.append("长上影阴线")
-    if is_bearish_engulfing(row):
-        take_profit_reasons.append("阴包阳")
     if take_profit_reasons:
         reasons.extend(take_profit_reasons)
-        execution_time = "14:57/收盘止盈"
+        execution_time = "收盘信号卖出"
     return {
         "reasons": reasons,
         "price": price,
@@ -581,7 +561,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天按14:57观察口径检查已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；若后续交易日收盘价B低于买入日开盘价A，则视为触发止损，并按B卖出；未触发止损时，放量阴线、阴十字星、连续两根阴线、长上影阴线、阴包阳任一成立即按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天按收盘价检查已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；后续交易日收盘时，放量阴线、阴十字星、连续两根阴线任一成立即按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -589,12 +569,10 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "transfer_fee_rate_both_sides": args.transfer_fee_rate,
         },
         "sell_rules": {
-            "stop_loss": "T+1交易；后续交易日收盘价B低于买入日开盘价A时触发止损，成交价为B。",
+            "t_plus_one": "T+1交易；买入日当日不卖出，后续交易日只按收盘信号卖出。",
             "volume_bearish": "放量阴线：C<O，实体跌幅(open-close)/open>2%，且V>REF(V,1)，按收盘价卖出。",
             "bearish_doji": "阴十字星：C<O 且实体占当日高低振幅比例小于20%；阳线十字星不卖出。",
             "two_bearish": "连续两根阴线：当日C<O且前一交易日C<O，按收盘价卖出。",
-            "long_upper_shadow_bearish": "长上影阴线：C<O，上影线长度大于实体2倍，且上影线占全日振幅60%以上。",
-            "bearish_engulfing": "阴包阳：昨日阳线、今日阴线，且今日开盘价不低于昨日收盘价、今日收盘价不高于昨日开盘价。",
         },
         "summary": summary,
         "daily": daily_rows,
