@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-08T10:40:51",
+  "generated_at": "2026-07-08T10:47:58",
   "port": "formula_breakout_top3_limit_backtest",
   "strategy_name": "公式选股Top3满仓轮动（封单过滤）",
   "start_date": "2016-07-08",
@@ -55071,5 +55071,5 @@
     }
   ],
   "signals_total": 30164,
-  "publish_revision": "2026-07-08-104059"
+  "publish_revision": "2026-07-08-104809"
 }
