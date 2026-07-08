@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-07-08T15:53:32",
+  "generated_at": "2026-07-08T16:47:23",
   "snapshot_date": "2026-07-08",
-  "snapshot_time": "2026-07-08T15:30:00",
+  "snapshot_time": "2026-07-08T15:00:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 8,
-  "display_limit": 200,
+  "display_limit": 60,
   "avg_formula_score": 85.6956,
   "avg_breakout_gap_pct": 1.6675,
   "selected_rows": [
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 1,
       "code": "600285",
       "name": "XD羚锐制",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 2,
       "code": "600882",
       "name": "妙可蓝多",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 3,
       "code": "002541",
       "name": "鸿路钢构",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 4,
       "code": "001324",
       "name": "长青科技",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 5,
       "code": "600676",
       "name": "交运股份",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 6,
       "code": "600332",
       "name": "白云山",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 7,
       "code": "603501",
       "name": "豪威集团",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-07-08",
-      "snapshot_time": "2026-07-08T15:30:00",
+      "snapshot_time": "2026-07-08T15:00:00",
       "rank": 8,
       "code": "603233",
       "name": "大参林",
