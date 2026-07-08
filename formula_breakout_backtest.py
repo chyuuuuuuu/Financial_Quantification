@@ -465,7 +465,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-date", default="")
     parser.add_argument("--end-date", default="")
     parser.add_argument("--top-n", type=int, default=20)
-    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
+    parser.add_argument("--min-float-market-cap", type=float, default=0.0)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/formula_breakout_backtest_1y.json")

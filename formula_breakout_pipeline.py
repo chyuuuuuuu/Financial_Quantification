@@ -638,7 +638,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--progress-every", type=int, default=600)
     parser.add_argument("--require-target-date", action="store_true", default=True)
     parser.add_argument("--allow-stale-target", dest="require_target_date", action="store_false")
-    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
+    parser.add_argument("--min-float-market-cap", type=float, default=0.0)
     parser.add_argument("--display-limit", type=int, default=200)
     parser.add_argument("--feedback-window", type=int, default=200)
     parser.add_argument("--feedback-display-limit", type=int, default=200)

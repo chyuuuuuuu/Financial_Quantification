@@ -654,6 +654,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "open_holdings": open_holdings,
         "signals_total": int(len(signals)),
     }
+    if min_float_market_cap <= 0:
+        for key in ("min_float_market_cap", "min_float_market_cap_yi", "market_cap_filter", "market_cap_proxy"):
+            report["buy_block_rule"].pop(key, None)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -690,7 +693,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit-up-pct", type=float, default=9.8)
     parser.add_argument("--limit-close-high-ratio", type=float, default=0.999)
     parser.add_argument("--min-formula-score", type=float, default=0.0)
-    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
+    parser.add_argument("--min-float-market-cap", type=float, default=0.0)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/formula_breakout_top2_backtest_1y.json")

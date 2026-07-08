@@ -75,6 +75,10 @@ def build_limitations(report: Dict[str, Any], coverage: Dict[str, Any]) -> List[
 def build_summary_payload(report: Dict[str, Any], previous_summary: Dict[str, Any], publish_revision: str) -> Dict[str, Any]:
     coverage = dict(previous_summary.get("coverage") or {})
     coverage["universe_count"] = report.get("universe_count", coverage.get("universe_count"))
+    buy_block_rule = dict(report.get("buy_block_rule") or {})
+    if float(buy_block_rule.get("min_float_market_cap") or 0.0) <= 0:
+        for key in ("min_float_market_cap", "min_float_market_cap_yi", "market_cap_filter", "market_cap_proxy"):
+            buy_block_rule.pop(key, None)
     payload = {
         key: report[key]
         for key in [
@@ -87,12 +91,13 @@ def build_summary_payload(report: Dict[str, Any], previous_summary: Dict[str, An
             "lot_size",
             "slots",
             "assumption",
-            "buy_block_rule",
             "fee_model",
             "sell_rules",
         ]
         if key in report
     }
+    if buy_block_rule:
+        payload["buy_block_rule"] = buy_block_rule
     payload.update(
         {
             "coverage": coverage,
