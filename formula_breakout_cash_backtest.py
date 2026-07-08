@@ -164,6 +164,18 @@ def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
     price = close
     execution_time = "收盘"
     trigger_price: Optional[float] = None
+    entry_price = float(getattr(holding, "entry_price", 0.0) or 0.0)
+    if entry_price > 0 and close < entry_price:
+        return {
+            "reasons": ["收盘价跌破买入价止损"],
+            "price": price,
+            "execution_time": "收盘止损",
+            "trigger_price": entry_price,
+            "take_profit_armed": False,
+            "take_profit_signal_reasons": [],
+            "ma5_close": None,
+            "close_below_ma5": False,
+        }
 
     take_profit_reasons: List[str] = []
     if is_volume_bearish(row):
@@ -561,7 +573,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天按收盘价检查已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；后续交易日收盘时，放量阴线、阴十字星、连续两根阴线任一成立即按收盘价卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天按收盘价检查已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；后续交易日优先判断止损，若收盘价低于买入价则按收盘价止损卖出；未触发止损时，放量阴线、阴十字星、连续两根阴线任一成立即按收盘价止盈卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -569,7 +581,8 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "transfer_fee_rate_both_sides": args.transfer_fee_rate,
         },
         "sell_rules": {
-            "t_plus_one": "T+1交易；买入日当日不卖出，后续交易日只按收盘信号卖出。",
+            "t_plus_one": "T+1交易；买入日当日不卖出。",
+            "stop_loss": "止损优先：后续交易日收盘价低于买入价时，按当日收盘价止损卖出。",
             "volume_bearish": "放量阴线：C<O，实体跌幅(open-close)/open>2%，且V>REF(V,1)，按收盘价卖出。",
             "bearish_doji": "阴十字星：C<O 且实体占当日高低振幅比例小于20%；阳线十字星不卖出。",
             "two_bearish": "连续两根阴线：当日C<O且前一交易日C<O，按收盘价卖出。",
