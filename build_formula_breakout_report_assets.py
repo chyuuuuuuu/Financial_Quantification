@@ -47,7 +47,7 @@ def parse_date(value: Optional[str]) -> Optional[datetime]:
 def build_limitations(report: Dict[str, Any], coverage: Dict[str, Any]) -> List[str]:
     universe = coverage.get("universe_count", report.get("universe_count"))
     covered = coverage.get("history_covered_to_2016_count", "-")
-    return [
+    limitations = [
         "止损规则按用户最新指定执行：T+1交易，买入日不卖出；后续交易日收盘价B低于买入日开盘价A，即无条件止损。",
         "止损成交价为B，即触发日收盘价；每日14:57观察在日线回测中用收盘价近似，不处理真实集合竞价排队和滑点问题。",
         "止盈条件：放量阴线、阴十字星、连续两根阴线、长上影阴线、阴包阳任意一个成立即按收盘价卖出；阳线十字星不卖出。",
@@ -62,6 +62,14 @@ def build_limitations(report: Dict[str, Any], coverage: Dict[str, Any]) -> List[
         f"历史日线覆盖不完整：{universe}只公式股票中{covered}只覆盖到2016年，其他股票从本地可用首日开始计算。",
         "回测计入佣金、印花税、过户费；不计滑点和真实排队成交。",
     ]
+    buy_rule = report.get("buy_block_rule") or {}
+    min_cap = float(buy_rule.get("min_float_market_cap") or 0.0)
+    if min_cap > 0:
+        limitations.insert(
+            5,
+            f"买入过滤新增市值条件：用历史成交额/(换手率/100)近似当日流通市值，低于{min_cap / 100000000:.0f}亿不买。",
+        )
+    return limitations
 
 
 def build_summary_payload(report: Dict[str, Any], previous_summary: Dict[str, Any], publish_revision: str) -> Dict[str, Any]:

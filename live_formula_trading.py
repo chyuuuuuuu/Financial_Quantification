@@ -97,6 +97,7 @@ def make_formula_args(args: argparse.Namespace) -> SimpleNamespace:
         retry=int(args.retry),
         progress_every=int(args.progress_every),
         require_target_date=not bool(args.allow_stale_target),
+        min_float_market_cap=float(args.min_float_market_cap),
         display_limit=int(args.display_limit),
         feedback_window=200,
         feedback_display_limit=200,
@@ -604,7 +605,7 @@ def build_report(
         "rules": {
             "schedule": "交易日15:00生成当日公式Top3跟单计划。",
             "position": "本金15000，三等分仓位；每个空槽使用剩余现金按剩余槽位均分后买入整手。",
-            "buy": "按公式评分从高到低补齐空槽；涨停不可买或单槽资金不足一手时顺延下一名。",
+            "buy": f"按公式评分从高到低补齐空槽；候选按成交额/换手率估算流通市值需不低于{float(args.min_float_market_cap) / 100000000:.0f}亿；涨停不可买或单槽资金不足一手时顺延下一名。",
             "sell": "T+1；后续交易日收盘价B低于买入日开盘价A时止损卖出；未止损时，放量阴线、阴十字星、连续两阴、长上影阴线、阴包阳任一成立即卖出。",
             "fees": {
                 "commission_rate": args.commission_rate,
@@ -698,6 +699,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-seal-amount", type=float, default=1.0)
     parser.add_argument("--limit-up-pct", type=float, default=9.8)
     parser.add_argument("--limit-close-high-ratio", type=float, default=0.999)
+    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
     parser.add_argument("--apply-state", action="store_true")
     parser.add_argument("--force-apply", action="store_true")
     parser.add_argument("--reset-state", action="store_true")

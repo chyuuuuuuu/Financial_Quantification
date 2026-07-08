@@ -210,6 +210,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         raise ValueError("no trading dates available for top2 backtest")
     signals_by_date = {date: df.sort_values(["rank"]) for date, df in signals.groupby("snapshot_date")} if not signals.empty else {}
     min_formula_score = float(getattr(args, "min_formula_score", 0.0) or 0.0)
+    min_float_market_cap = float(getattr(args, "min_float_market_cap", 0.0) or 0.0)
     limit_up_pools = getattr(args, "_limit_up_pools", None)
     if limit_up_pools is None:
         limit_up_pools = load_limit_up_pools(market_dates, args)
@@ -606,6 +607,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "若后续交易日收盘价B低于买入日开盘价A，则视为触发止损，并按B卖出；"
             "未触发止损时，放量阴线、阴十字星、连续两根阴线、长上影阴线、阴包阳任一成立即按收盘价卖出。"
             + (f"买入候选必须满足公式评分>{min_formula_score:g}，低于或等于该分数不买入；" if min_formula_score > 0 else "")
+            + (f"买入候选按历史成交额/换手率估算流通市值必须>={min_float_market_cap / 100000000:.0f}亿；" if min_float_market_cap > 0 else "")
             + "空出的仓位槽用当日公式评分从高到低补齐，买入按收盘集合竞价/15:00的收盘价近似。"
             + "多个空槽时现金按剩余槽位均分，各槽尽量满额买入整手；已持有或当天刚卖出的股票不重复买回。"
             + buy_block_text
@@ -622,6 +624,10 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
             "min_formula_score": min_formula_score,
             "score_filter": f"formula_score>{min_formula_score:g}" if min_formula_score > 0 else "",
+            "min_float_market_cap": min_float_market_cap,
+            "min_float_market_cap_yi": round(min_float_market_cap / 100000000.0, 4),
+            "market_cap_filter": f"float_market_cap_proxy>={min_float_market_cap / 100000000:.0f}亿" if min_float_market_cap > 0 else "",
+            "market_cap_proxy": "历史成交额 / (换手率 / 100)，近似为当日流通市值，用于避免当前市值筛历史样本的未来函数。",
             "limit_up_source": args.limit_up_source,
             "limit_up_pool_dir": args.limit_up_pool_dir,
             "limit_up_data_start_date": str(getattr(args, "limit_up_data_start_date", "") or ""),
@@ -684,6 +690,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit-up-pct", type=float, default=9.8)
     parser.add_argument("--limit-close-high-ratio", type=float, default=0.999)
     parser.add_argument("--min-formula-score", type=float, default=0.0)
+    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/formula_breakout_top2_backtest_1y.json")

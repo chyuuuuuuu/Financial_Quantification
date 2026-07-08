@@ -34,6 +34,9 @@ BASE_COLUMNS = [
     "low",
     "pct_chg",
     "amount",
+    "turnover",
+    "float_market_cap_proxy",
+    "float_market_cap_proxy_yi",
     "volume",
     "formula_score",
     "base_score",
@@ -76,6 +79,14 @@ def safe_float(value: object, default: float = 0.0) -> float:
         return out if math.isfinite(out) else default
     except Exception:
         return default
+
+
+def estimate_float_market_cap(amount: object, turnover_rate: object) -> float:
+    turnover = safe_float(turnover_rate)
+    if turnover <= 0:
+        return 0.0
+    cap = safe_float(amount) / (turnover / 100.0)
+    return cap if math.isfinite(cap) and cap > 0 else 0.0
 
 
 def clean_records(df: pd.DataFrame) -> List[Dict[str, object]]:
@@ -184,6 +195,10 @@ def evaluate_formula(
     low = hist["最低"].astype(float).reset_index(drop=True)
     volume = hist["成交量"].astype(float).fillna(0).reset_index(drop=True)
     amount = hist["成交额"].astype(float).fillna(0).reset_index(drop=True)
+    if "换手率" in hist.columns:
+        turnover = pd.to_numeric(hist["换手率"], errors="coerce").fillna(0).reset_index(drop=True)
+    else:
+        turnover = pd.Series(np.zeros(len(hist)), dtype=float)
     pct_chg = hist["涨跌幅"].astype(float).fillna(0).reset_index(drop=True)
     date = pd.to_datetime(hist["日期"]).reset_index(drop=True)
 
@@ -244,6 +259,8 @@ def evaluate_formula(
     heat_penalty = max(0.0, min(8.0, max_close_vs_triple - 8.0))
     base_score = 45.0
     score = round(base_score + contraction_score + triple_score + timing_score + macd_score + breakout_score - heat_penalty, 3)
+    turnover_rate = safe_float(turnover.iloc[i])
+    float_market_cap_proxy = estimate_float_market_cap(amount.iloc[i], turnover_rate)
 
     return {
         "code": code,
@@ -255,6 +272,9 @@ def evaluate_formula(
         "low": round(safe_float(low.iloc[i]), 4),
         "pct_chg": round(safe_float(pct_chg.iloc[i]), 4),
         "amount": round(safe_float(amount.iloc[i]), 2),
+        "turnover": round(turnover_rate, 4),
+        "float_market_cap_proxy": round(float_market_cap_proxy, 2),
+        "float_market_cap_proxy_yi": round(float_market_cap_proxy / 100000000.0, 4),
         "volume": round(safe_float(volume.iloc[i]), 2),
         "formula_score": score,
         "base_score": round(base_score, 3),
@@ -299,6 +319,7 @@ def load_histories(universe: pd.DataFrame, history_dir: Path) -> Dict[str, pd.Da
 def screen_candidates(args: argparse.Namespace, target_date: str, histories: Optional[Dict[str, pd.DataFrame]] = None) -> pd.DataFrame:
     universe = load_universe(Path(args.universe_file))
     names = dict(zip(universe["code"], universe["name"]))
+    min_float_market_cap = float(getattr(args, "min_float_market_cap", 0.0) or 0.0)
     rows: List[Dict[str, object]] = []
     for idx, code in enumerate(universe["code"], start=1):
         if histories is not None:
@@ -315,6 +336,8 @@ def screen_candidates(args: argparse.Namespace, target_date: str, histories: Opt
                 continue
         item = evaluate_formula(code, names.get(code, ""), hist, target_date, args.require_target_date, normalized=histories is not None)
         if item is not None:
+            if min_float_market_cap > 0 and float(item.get("float_market_cap_proxy") or 0.0) < min_float_market_cap:
+                continue
             rows.append(item)
         if args.progress_every > 0 and idx % args.progress_every == 0:
             print(f"[{now_text()}] formula screen {idx}/{len(universe)}, selected={len(rows)}")
@@ -465,6 +488,7 @@ def build_analysis(args: argparse.Namespace, run_time: datetime, selected: pd.Da
         "feedback_rows": clean_records(recent_feedback.tail(args.feedback_display_limit)) if not recent_feedback.empty else [],
         "rules": {
             "main_non_st": "00/60 主板，剔除 ST/*ST",
+            "market_cap": f"按历史成交额/换手率估算流通市值，低于{float(args.min_float_market_cap) / 100000000:.0f}亿不买" if float(getattr(args, "min_float_market_cap", 0.0) or 0.0) > 0 else "不限制市值",
             "triple_yang": "V > 3 * REF(V,1) 且 C > O",
             "window": "BARSLAST(三倍阳) 在 2 到 120 日",
             "contraction": "MA(V,5) 与 MA(V,10) 均小于三倍阳成交量",
@@ -515,6 +539,7 @@ def replay(args: argparse.Namespace) -> None:
         raise ValueError("--replay-start and --replay-end are required")
     universe = load_universe(Path(args.universe_file))
     names = dict(zip(universe["code"], universe["name"]))
+    min_float_market_cap = float(getattr(args, "min_float_market_cap", 0.0) or 0.0)
     start = pd.Timestamp(args.replay_start)
     end = pd.Timestamp(args.replay_end)
     dates = [
@@ -540,6 +565,8 @@ def replay(args: argparse.Namespace) -> None:
         for d in dates:
             item = evaluate_formula(code, names.get(code, ""), hist, d, True, normalized=True)
             if item is not None:
+                if min_float_market_cap > 0 and float(item.get("float_market_cap_proxy") or 0.0) < min_float_market_cap:
+                    continue
                 rows_by_date[d].append(item)
 
     selected_by_date: Dict[str, pd.DataFrame] = {}
@@ -611,6 +638,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--progress-every", type=int, default=600)
     parser.add_argument("--require-target-date", action="store_true", default=True)
     parser.add_argument("--allow-stale-target", dest="require_target_date", action="store_false")
+    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
     parser.add_argument("--display-limit", type=int, default=200)
     parser.add_argument("--feedback-window", type=int, default=200)
     parser.add_argument("--feedback-display-limit", type=int, default=200)

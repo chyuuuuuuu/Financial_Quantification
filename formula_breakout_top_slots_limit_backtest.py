@@ -85,6 +85,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-seal-amount", type=float, default=1.0)
     parser.add_argument("--limit-up-pct", type=float, default=9.8)
     parser.add_argument("--limit-close-high-ratio", type=float, default=0.999)
+    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
     parser.add_argument("--progress-every", type=int, default=600)
     parser.add_argument("--output", default="static/reports/formula_breakout_top1_to_top5_limit_backtest_1y.json")
     parser.add_argument("--detail-output-template", default="static/reports/formula_breakout_top{slots}_limit_backtest_1y.json")
@@ -115,6 +116,7 @@ def main() -> None:
         min_seal_amount=args.min_seal_amount,
         limit_up_pct=args.limit_up_pct,
         limit_close_high_ratio=args.limit_close_high_ratio,
+        min_float_market_cap=args.min_float_market_cap,
         output="",
         daily_csv="",
         operations_csv="",

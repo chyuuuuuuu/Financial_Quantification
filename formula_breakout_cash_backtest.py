@@ -283,7 +283,11 @@ def build_signals_and_histories(args: argparse.Namespace) -> Tuple[pd.DataFrame,
         market_dates.update(stock_dates)
         if args.progress_every > 0 and idx % args.progress_every == 0:
             print(f"[{now_text()}] cash backtest signals {idx}/{len(universe)}, signals={len(rows)}")
-    signals = rank_signals(pd.DataFrame(rows))
+    raw_signals = pd.DataFrame(rows)
+    min_float_market_cap = float(getattr(args, "min_float_market_cap", 0.0) or 0.0)
+    if min_float_market_cap > 0 and not raw_signals.empty:
+        raw_signals = raw_signals[pd.to_numeric(raw_signals["float_market_cap_proxy"], errors="coerce").fillna(0.0) >= min_float_market_cap]
+    signals = rank_signals(raw_signals)
     return signals, histories, sorted(market_dates), start, end, len(universe)
 
 
@@ -625,6 +629,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-commission", type=float, default=5.0)
     parser.add_argument("--stamp-tax-rate", type=float, default=0.0005)
     parser.add_argument("--transfer-fee-rate", type=float, default=0.00001)
+    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/formula_breakout_cash_backtest_1y.json")

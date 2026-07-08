@@ -17,6 +17,7 @@ import pandas as pd
 
 from formula_breakout_pipeline import (
     clean_records,
+    estimate_float_market_cap,
     load_universe,
     macd,
     normalize_code,
@@ -146,6 +147,10 @@ def evaluate_history(
     low = pd.to_numeric(hist["最低"], errors="coerce").to_numpy(dtype=float)
     volume = pd.to_numeric(hist["成交量"], errors="coerce").fillna(0).to_numpy(dtype=float)
     amount = pd.to_numeric(hist["成交额"], errors="coerce").fillna(0).to_numpy(dtype=float)
+    if "换手率" in hist.columns:
+        turnover = pd.to_numeric(hist["换手率"], errors="coerce").fillna(0).to_numpy(dtype=float)
+    else:
+        turnover = np.zeros(len(hist), dtype=float)
     pct_chg = pd.to_numeric(hist["涨跌幅"], errors="coerce").fillna(0).to_numpy(dtype=float)
     date_text = date_series.dt.strftime("%Y-%m-%d").tolist()
 
@@ -214,6 +219,7 @@ def evaluate_history(
         base_score = 45.0
         score = round(base_score + contraction_score + triple_score + timing_score + macd_score + breakout_score - heat_penalty, 3)
         triple_idx = int(last_triple[idx])
+        float_market_cap_proxy = estimate_float_market_cap(amount[idx], turnover[idx])
         row: Dict[str, object] = {
             "snapshot_date": date_text[idx],
             "code": normalize_code(code),
@@ -225,6 +231,9 @@ def evaluate_history(
             "low": round(float(low[idx]), 4),
             "pct_chg": round(float(pct_chg[idx]), 4),
             "amount": round(float(amount[idx]), 2),
+            "turnover": round(float(turnover[idx]), 4),
+            "float_market_cap_proxy": round(float_market_cap_proxy, 2),
+            "float_market_cap_proxy_yi": round(float_market_cap_proxy / 100000000.0, 4),
             "volume": round(float(volume[idx]), 2),
             "formula_score": score,
             "base_score": round(base_score, 3),
@@ -402,7 +411,11 @@ def build_report(args: argparse.Namespace) -> Dict[str, object]:
         if args.progress_every > 0 and idx % args.progress_every == 0:
             print(f"[{now_text()}] backtest {idx}/{len(universe)}, signals={len(rows)}")
 
-    signals = rank_signals(pd.DataFrame(rows))
+    raw_signals = pd.DataFrame(rows)
+    min_float_market_cap = float(getattr(args, "min_float_market_cap", 0.0) or 0.0)
+    if min_float_market_cap > 0 and not raw_signals.empty:
+        raw_signals = raw_signals[pd.to_numeric(raw_signals["float_market_cap_proxy"], errors="coerce").fillna(0.0) >= min_float_market_cap]
+    signals = rank_signals(raw_signals)
     dates = sorted(market_dates)
     all_summary, all_daily, all_monthly = build_portfolio(signals, dates, 0, "all_formula_signals")
     top_summary, top_daily, top_monthly = build_portfolio(signals, dates, args.top_n, f"top{args.top_n}")
@@ -419,6 +432,7 @@ def build_report(args: argparse.Namespace) -> Dict[str, object]:
         "assumption": "信号按收盘后确认；回测收益采用信号日收盘价到后续交易日收盘价，组合按每日入选等权。",
         "rules": {
             "main_non_st": "00/60 主板，剔除 ST/*ST",
+            "market_cap": f"按历史成交额/换手率估算流通市值，低于{min_float_market_cap / 100000000:.0f}亿不买" if min_float_market_cap > 0 else "不限制市值",
             "triple_yang": "V > 3 * REF(V,1) 且 C > O",
             "window": "BARSLAST(三倍阳) 在 2 到 120 日",
             "contraction": "MA(V,5) 与 MA(V,10) 均小于三倍阳成交量",
@@ -451,6 +465,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-date", default="")
     parser.add_argument("--end-date", default="")
     parser.add_argument("--top-n", type=int, default=20)
+    parser.add_argument("--min-float-market-cap", type=float, default=10000000000.0)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/formula_breakout_backtest_1y.json")

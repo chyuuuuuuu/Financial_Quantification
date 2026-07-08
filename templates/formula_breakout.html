@@ -446,6 +446,36 @@
         </div>
     </section>
 
+    <section class="panel" id="top3Mcap100TenYearPanel" hidden>
+        <h2>Top3 市值≥100亿 十年回测</h2>
+        <div class="body">
+            <div class="backtest-cards">
+                <div class="card"><div class="k">最终权益</div><div class="v" id="top3Mcap100Final">-</div></div>
+                <div class="card"><div class="k">清仓权益</div><div class="v" id="top3Mcap100Liquidation">-</div></div>
+                <div class="card"><div class="k">总盈利</div><div class="v" id="top3Mcap100Profit">-</div></div>
+                <div class="card"><div class="k">总收益率</div><div class="v" id="top3Mcap100Return">-</div></div>
+                <div class="card"><div class="k">最大回撤</div><div class="v" id="top3Mcap100Drawdown">-</div></div>
+                <div class="card"><div class="k">总费用</div><div class="v" id="top3Mcap100Fees">-</div></div>
+                <div class="card"><div class="k">买入/卖出</div><div class="v" id="top3Mcap100Trades">-</div></div>
+                <div class="card"><div class="k">合格天数</div><div class="v" id="top3Mcap100EligibleDays">-</div></div>
+                <div class="card"><div class="k">平均持仓</div><div class="v" id="top3Mcap100AvgHoldings">-</div></div>
+            </div>
+            <div class="sub" id="top3Mcap100Note">按历史成交额/换手率估算流通市值，低于100亿不买；三槽三分仓。</div>
+            <canvas id="top3Mcap100TenYearChart"></canvas>
+            <div class="table-wrap">
+                <table class="compact-table">
+                    <thead>
+                    <tr>
+                        <th>年份</th><th>年初权益</th><th>年末权益</th><th>年度盈利</th><th>年度收益率</th>
+                        <th>合格数</th><th>费用</th><th>买/卖</th><th>封单跳过</th><th>交易日</th>
+                    </tr>
+                    </thead>
+                    <tbody id="top3Mcap100YearBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <section class="panel" id="top1TenYearPanel" hidden>
         <h2>Top1 单票十年对比</h2>
         <div class="body">
@@ -581,6 +611,7 @@ let top2TenYearBacktest = null;
 let top3TenYearBacktest = null;
 let top4TenYearBacktest = null;
 let top3Score90TenYearBacktest = null;
+let top3Mcap100TenYearBacktest = null;
 let top1TenYearBacktest = null;
 let top3TradeBacktest = null;
 
@@ -719,6 +750,17 @@ async function loadTop3Score90TenYearBacktest() {
         try { return await fetchJson(url); }
         catch (err) {
             // Top3 score-filtered ten-year report is optional while the page is being generated.
+        }
+    }
+    return null;
+}
+
+async function loadTop3Mcap100TenYearBacktest() {
+    const urls = ['./reports/formula_breakout_top3_mcap100_limit_backtest_10y.json', '/static/reports/formula_breakout_top3_mcap100_limit_backtest_10y.json'];
+    for (const url of urls) {
+        try { return await fetchJson(url); }
+        catch (err) {
+            // Market-cap filtered ten-year report is optional while the page is being generated.
         }
     }
     return null;
@@ -1364,6 +1406,40 @@ function renderTop3Score90TenYearBacktest(data) {
     `).join('');
 }
 
+function renderTop3Mcap100TenYearBacktest(data) {
+    if (!data || !data.summary) return;
+    document.getElementById('top3Mcap100TenYearPanel').hidden = false;
+    const s = data.summary || {};
+    const rule = data.buy_block_rule || {};
+    setText('top3Mcap100Final', fmt(s.final_equity, 0));
+    setText('top3Mcap100Liquidation', fmt(s.final_liquidation_equity, 0), pctClass(s.liquidation_profit));
+    setText('top3Mcap100Profit', fmt(s.profit, 0), pctClass(s.profit));
+    setText('top3Mcap100Return', `${fmt(s.return_pct, 2)}%`, pctClass(s.return_pct));
+    setText('top3Mcap100Drawdown', `${fmt(s.max_drawdown_pct, 2)}%`, pctClass(s.max_drawdown_pct));
+    setText('top3Mcap100Fees', fmt(s.total_fees, 0), 'down');
+    setText('top3Mcap100Trades', `${s.total_buys ?? 0}/${s.total_sells ?? 0}`);
+    setText('top3Mcap100EligibleDays', `${s.eligible_signal_days ?? 0}/${s.trading_days ?? 0}`);
+    setText('top3Mcap100AvgHoldings', fmt(s.avg_holdings_count, 2));
+    document.getElementById('top3Mcap100Note').textContent =
+        `买入过滤：${rule.market_cap_filter || 'float_market_cap_proxy>=100亿'}；${rule.market_cap_proxy || '用成交额/换手率近似当日流通市值'}；卖出规则同当前止盈止损。`;
+    renderEquityChart(data, 'top3Mcap100TenYearChart', '#0891b2');
+    const rows = data.yearly || [];
+    document.getElementById('top3Mcap100YearBody').innerHTML = rows.map(r => `
+        <tr>
+            <td>${esc(r.year) || '-'}</td>
+            <td>${fmt(r.starting_equity, 0)}</td>
+            <td>${fmt(r.ending_equity, 0)}</td>
+            <td class="${pctClass(r.profit)}">${fmt(r.profit, 0)}</td>
+            <td class="${pctClass(r.year_ret_pct)}">${fmt(r.year_ret_pct, 2)}%</td>
+            <td>${r.eligible_count ?? 0}</td>
+            <td>${fmt(r.fees_paid, 0)}</td>
+            <td>${r.buy_count ?? 0}/${r.sell_count ?? 0}</td>
+            <td>${r.limit_up_skip_count ?? 0}</td>
+            <td>${r.trading_days ?? 0}</td>
+        </tr>
+    `).join('');
+}
+
 function renderTop1TenYearComparison(top1, top3) {
     if (!top1 || !top1.summary) return;
     document.getElementById('top1TenYearPanel').hidden = false;
@@ -1504,7 +1580,7 @@ function renderFeedback(rows) {
 
 async function init() {
     try {
-        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top2TenYearBacktest, top3TenYearBacktest, top4TenYearBacktest, top3Score90TenYearBacktest, top1TenYearBacktest, top3TradeBacktest] = await Promise.all([
+        [payload, dateIndex, backtest, cashBacktest, top2Backtest, top1Backtest, topSlotsLimitBacktest, top2TenYearBacktest, top3TenYearBacktest, top4TenYearBacktest, top3Score90TenYearBacktest, top3Mcap100TenYearBacktest, top1TenYearBacktest, top3TradeBacktest] = await Promise.all([
             loadData(),
             loadDateIndex(),
             loadBacktest(),
@@ -1516,6 +1592,7 @@ async function init() {
             loadTop3TenYearBacktest(),
             loadTop4TenYearBacktest(),
             loadTop3Score90TenYearBacktest(),
+            loadTop3Mcap100TenYearBacktest(),
             loadTop1TenYearBacktest(),
             loadTop3TradeBacktest(),
         ]);
@@ -1532,6 +1609,7 @@ async function init() {
         renderTop3TenYearBacktest(top3TenYearBacktest);
         renderTopSlotTenYearComparison(top2TenYearBacktest, top3TenYearBacktest, top4TenYearBacktest);
         renderTop3Score90TenYearBacktest(top3Score90TenYearBacktest);
+        renderTop3Mcap100TenYearBacktest(top3Mcap100TenYearBacktest);
         renderTop1TenYearComparison(top1TenYearBacktest, top3TenYearBacktest);
         renderTop3Trades();
         renderSelected();
@@ -1559,6 +1637,7 @@ window.addEventListener('resize', () => {
         { label: 'Top4四槽', data: top4TenYearBacktest, color: '#b45309' },
     ], 'topSlotTenCompareChart');
     if (top3Score90TenYearBacktest) renderEquityChart(top3Score90TenYearBacktest, 'top3Score90TenYearChart', '#dc2626');
+    if (top3Mcap100TenYearBacktest) renderEquityChart(top3Mcap100TenYearBacktest, 'top3Mcap100TenYearChart', '#0891b2');
     if (top1TenYearBacktest) renderEquityChart(top1TenYearBacktest, 'top1TenYearChart', '#0f766e');
 });
 init();
