@@ -321,7 +321,7 @@ def build_signals_and_histories(args: argparse.Namespace) -> Tuple[pd.DataFrame,
             hist,
             start,
             end,
-            buy_next_trading_day=bool(getattr(args, "buy_next_trading_day", False)),
+            buy_next_trading_day=bool(getattr(args, "buy_next_trading_day", False) or getattr(args, "buy_next_signal_close_limit", False)),
         )
         histories[code] = hist
         all_rows.extend(rows)
@@ -365,6 +365,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     total_buys = 0
     total_sells = 0
     total_limit_up_skips = 0
+    total_unfilled_limit_orders = 0
     prev_equity = cash
 
     for trade_index, date_text in enumerate(market_dates):
@@ -441,6 +442,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         bought_codes = set(held_codes)
         skipped = 0
         limit_up_skips = 0
+        unfilled_limit_orders = 0
         first_skipped_rank: Optional[int] = None
         for slot in empty_slots:
             remaining_slots = int(args.slots) - len(holdings)
@@ -472,7 +474,35 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                         }
                     )
                     continue
-                price = float(signal.buy_open) if getattr(args, "buy_next_trading_day", False) else float(signal.buy_close)
+                if getattr(args, "buy_next_signal_close_limit", False):
+                    price = float(signal.signal_close)
+                    buy_low = float(signal.buy_low)
+                    if not (math.isfinite(price) and math.isfinite(buy_low) and buy_low <= price):
+                        skipped += 1
+                        unfilled_limit_orders += 1
+                        total_unfilled_limit_orders += 1
+                        first_skipped_rank = first_skipped_rank or int(signal.rank)
+                        day_ops.append(
+                            {
+                                "action": "skip",
+                                "date": date_text,
+                                "slot": slot,
+                                "code": code,
+                                "name": str(signal.name),
+                                "rank": int(signal.rank),
+                                "price": round(price, 4),
+                                "signal_date": str(signal.signal_date),
+                                "buy_open": round(float(signal.buy_open), 4),
+                                "buy_low": round(float(signal.buy_low), 4),
+                                "buy_high": round(float(signal.buy_high), 4),
+                                "buy_close": round(float(signal.buy_close), 4),
+                                "formula_score": round(float(signal.formula_score), 3),
+                                "reason": "次日未触及涨停收盘挂单价",
+                            }
+                        )
+                        continue
+                else:
+                    price = float(signal.buy_open) if getattr(args, "buy_next_trading_day", False) else float(signal.buy_close)
                 shares, cost, fees = max_affordable_shares(price, budget, args)
                 if shares <= 0:
                     skipped += 1
@@ -525,9 +555,10 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                         "formula_score": round(holding.entry_score, 3),
                         "signal_date": holding.signal_date,
                         "buy_open": round(float(signal.buy_open), 4),
+                        "buy_limit_price": round(price, 4) if getattr(args, "buy_next_signal_close_limit", False) else None,
                         "buy_close": round(float(signal.buy_close), 4),
                         "slot_budget": round(budget, 2),
-                        "execution_time": "次日开盘" if getattr(args, "buy_next_trading_day", False) else "涨停日收盘",
+                        "execution_time": "次日挂涨停收盘价成交" if getattr(args, "buy_next_signal_close_limit", False) else ("次日开盘" if getattr(args, "buy_next_trading_day", False) else "涨停日收盘"),
                     }
                 )
                 break
@@ -568,6 +599,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "sell_count": sum(1 for op in day_ops if op["action"] == "sell"),
             "skipped_count": skipped,
             "limit_up_skip_count": limit_up_skips,
+            "unfilled_limit_order_count": unfilled_limit_orders,
             "first_skipped_rank": first_skipped_rank,
             "cash_start": round(cash_start, 2),
             "cash_end": round(cash, 2),
@@ -609,6 +641,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "total_buys": total_buys,
         "total_sells": total_sells,
         "blocked_limit_up_buys": total_limit_up_skips,
+        "unfilled_limit_orders": total_unfilled_limit_orders,
         "open_lots": len(holdings),
         "closed_win_rate_pct": round(float(np.mean(np.array(closed_returns) > 0) * 100.0), 4) if closed_returns else None,
         "avg_closed_ret_pct": round(float(np.mean(closed_returns)), 4) if closed_returns else None,
@@ -622,11 +655,12 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "sell_days": int(sum(1 for row in daily_rows if row["sell_count"] > 0)),
         "avg_holdings_count": round(float(np.mean([row["holdings_count"] for row in daily_rows])), 4) if daily_rows else 0.0,
     }
-    buy_next_day = bool(getattr(args, "buy_next_trading_day", False))
+    buy_next_day = bool(getattr(args, "buy_next_trading_day", False) or getattr(args, "buy_next_signal_close_limit", False))
+    buy_next_signal_close_limit = bool(getattr(args, "buy_next_signal_close_limit", False))
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "port": "limitup_formula_signal_next_open_backtest" if buy_next_day else "limitup_formula_signal_close_backtest",
-        "strategy_name": "涨停公式次日开盘买入Top3" if buy_next_day else "涨停当天公式收盘买入Top3",
+        "port": "limitup_formula_signal_next_limit_backtest" if buy_next_signal_close_limit else ("limitup_formula_signal_next_open_backtest" if buy_next_day else "limitup_formula_signal_close_backtest"),
+        "strategy_name": "涨停公式次日挂涨停收盘价买入Top3" if buy_next_signal_close_limit else ("涨停公式次日开盘买入Top3" if buy_next_day else "涨停当天公式收盘买入Top3"),
         "start_date": str(args.start_date),
         "end_date": str(args.end_date),
         "universe_count": universe_count,
@@ -636,7 +670,9 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "assumption": (
             "运行日T使用当日收盘后数据选股；T日必须严格涨停并完整满足三倍阳缩量回调突破公式；"
             + (
-                "假设涨停日不可买入，信号顺延到T+1交易日并按T+1开盘价成交；"
+                "假设涨停日不可买入，T+1交易日挂T日涨停收盘价买入；若T+1最低价未触及挂单价则不成交并跳过；"
+                if buy_next_signal_close_limit
+                else "假设涨停日不可买入，信号顺延到T+1交易日并按T+1开盘价成交；"
                 if buy_next_day
                 else ("假设涨停不可买入，所有涨停信号均跳过；" if getattr(args, "block_limit_up_buys", False) else "假设涨停当天收盘可以买入，按T日收盘价成交；")
             )
@@ -645,7 +681,8 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "buy_block_rule": {
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
             "buy_next_trading_day": buy_next_day,
-            "description": "涨停日不可买入时，信号顺延到次一交易日开盘买入。" if buy_next_day else "涨停不可买入时，本策略所有信号都因严格涨停条件被跳过。",
+            "buy_next_signal_close_limit": buy_next_signal_close_limit,
+            "description": "涨停日不可买入时，次一交易日挂涨停日收盘价；T+1最低价未触及则视为买不入。" if buy_next_signal_close_limit else ("涨停日不可买入时，信号顺延到次一交易日开盘买入。" if buy_next_day else "涨停不可买入时，本策略所有信号都因严格涨停条件被跳过。"),
         },
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
@@ -700,6 +737,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--transfer-fee-rate", type=float, default=0.00001)
     parser.add_argument("--block-limit-up-buys", action="store_true")
     parser.add_argument("--buy-next-trading-day", action="store_true")
+    parser.add_argument("--buy-next-signal-close-limit", action="store_true")
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/limitup_formula_signal_close_backtest_2026.json")
