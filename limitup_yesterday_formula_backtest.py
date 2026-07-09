@@ -341,6 +341,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     total_transfer_fee = 0.0
     total_buys = 0
     total_sells = 0
+    total_limit_up_skips = 0
     prev_equity = cash
 
     for trade_index, date_text in enumerate(market_dates):
@@ -416,6 +417,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         held_codes = {h.code for h in holdings}
         bought_codes = set(held_codes)
         skipped = 0
+        limit_up_skips = 0
         first_skipped_rank: Optional[int] = None
         for slot in empty_slots:
             remaining_slots = int(args.slots) - len(holdings)
@@ -426,6 +428,26 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             for signal in raw_candidates.itertuples(index=False):
                 code = normalize_code(signal.code)
                 if code in bought_codes or code in sold_codes:
+                    continue
+                if getattr(args, "block_limit_up_buys", False):
+                    skipped += 1
+                    limit_up_skips += 1
+                    total_limit_up_skips += 1
+                    first_skipped_rank = first_skipped_rank or int(signal.rank)
+                    day_ops.append(
+                        {
+                            "action": "skip",
+                            "date": date_text,
+                            "slot": slot,
+                            "code": code,
+                            "name": str(signal.name),
+                            "rank": int(signal.rank),
+                            "price": round(float(signal.buy_close), 4),
+                            "signal_date": str(signal.signal_date),
+                            "formula_score": round(float(signal.formula_score), 3),
+                            "reason": "涨停不可买入",
+                        }
+                    )
                     continue
                 price = float(signal.buy_close)
                 shares, cost, fees = max_affordable_shares(price, budget, args)
@@ -520,6 +542,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "buy_count": sum(1 for op in day_ops if op["action"] == "buy"),
             "sell_count": sum(1 for op in day_ops if op["action"] == "sell"),
             "skipped_count": skipped,
+            "limit_up_skip_count": limit_up_skips,
             "first_skipped_rank": first_skipped_rank,
             "cash_start": round(cash_start, 2),
             "cash_end": round(cash, 2),
@@ -560,6 +583,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "max_drawdown_pct": max_drawdown(equity_series),
         "total_buys": total_buys,
         "total_sells": total_sells,
+        "blocked_limit_up_buys": total_limit_up_skips,
         "open_lots": len(holdings),
         "closed_win_rate_pct": round(float(np.mean(np.array(closed_returns) > 0) * 100.0), 4) if closed_returns else None,
         "avg_closed_ret_pct": round(float(np.mean(closed_returns)), 4) if closed_returns else None,
@@ -583,7 +607,15 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "initial_cash": float(args.initial_cash),
         "slots": int(args.slots),
         "lot_size": int(args.lot_size),
-        "assumption": "运行日T使用当日收盘后数据选股；T日必须严格涨停并完整满足三倍阳缩量回调突破公式；假设涨停当天收盘可以买入，按T日收盘价成交；买入后第二个交易日若收盘价低于买入当天开盘价则按收盘价止损；从第三个交易日开始，若收盘价低于买入价则按收盘价止损；未止损时，放量阴线、阴线十字星、连续两根阴线任一出现即按收盘价卖出。",
+        "assumption": (
+            "运行日T使用当日收盘后数据选股；T日必须严格涨停并完整满足三倍阳缩量回调突破公式；"
+            + ("假设涨停不可买入，所有涨停信号均跳过；" if getattr(args, "block_limit_up_buys", False) else "假设涨停当天收盘可以买入，按T日收盘价成交；")
+            + "买入后第二个交易日若收盘价低于买入当天开盘价则按收盘价止损；从第三个交易日开始，若收盘价低于买入价则按收盘价止损；未止损时，放量阴线、阴线十字星、连续两根阴线任一出现即按收盘价卖出。"
+        ),
+        "buy_block_rule": {
+            "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
+            "description": "涨停不可买入时，本策略所有信号都因严格涨停条件被跳过。",
+        },
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
             "stop_loss": "最高优先级：买入后第二个交易日收盘价低于买入当天开盘价时止损；从第三个交易日开始，收盘价低于买入价时止损；均按触发日收盘价卖出。",
@@ -635,6 +667,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-commission", type=float, default=5.0)
     parser.add_argument("--stamp-tax-rate", type=float, default=0.0005)
     parser.add_argument("--transfer-fee-rate", type=float, default=0.00001)
+    parser.add_argument("--block-limit-up-buys", action="store_true")
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/limitup_formula_signal_close_backtest_2026.json")
