@@ -36,6 +36,7 @@ class Holding:
     entry_gross: float
     entry_rank: int
     entry_score: float
+    entry_trade_index: int = -1
     take_profit_armed: bool = False
     take_profit_trigger_date: str = ""
     take_profit_trigger_reason: str = ""
@@ -158,19 +159,48 @@ def is_bullish_ma_alignment(row: pd.Series) -> bool:
     return ma5 > 0 and ma10 > 0 and ma20 > 0 and ma5 > ma10 > ma20
 
 
+def trading_days_after_entry(row: pd.Series, holding: Holding) -> int:
+    current_index = row.get("_trade_index")
+    entry_index = getattr(holding, "entry_trade_index", -1)
+    try:
+        current_index_int = int(current_index)
+        entry_index_int = int(entry_index)
+    except (TypeError, ValueError):
+        current_index_int = -1
+        entry_index_int = -1
+    if current_index_int >= 0 and entry_index_int >= 0:
+        return current_index_int - entry_index_int
+
+    current_date = str(row.get("date_text") or "")[:10]
+    entry_date = str(getattr(holding, "entry_date", "") or "")[:10]
+    if current_date and entry_date and current_date <= entry_date:
+        return 0
+    return 2
+
+
 def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
     close = row_float(row, "收盘")
     reasons: List[str] = []
     price = close
     execution_time = "收盘"
     trigger_price: Optional[float] = None
+    entry_price = float(getattr(holding, "entry_price", 0.0) or 0.0)
     entry_open = float(getattr(holding, "entry_open", 0.0) or 0.0)
-    if entry_open > 0 and close < entry_open:
+    days_after_entry = trading_days_after_entry(row, holding)
+    stop_price = 0.0
+    stop_reason = ""
+    if days_after_entry == 1 and entry_open > 0:
+        stop_price = entry_open
+        stop_reason = "第二天收盘价跌破买入日开盘价止损"
+    elif days_after_entry >= 2 and entry_price > 0:
+        stop_price = entry_price
+        stop_reason = "第三天后收盘价跌破买入价止损"
+    if stop_price > 0 and close < stop_price:
         return {
-            "reasons": ["收盘价跌破买入日开盘价止损"],
+            "reasons": [stop_reason],
             "price": price,
             "execution_time": "收盘止损",
-            "trigger_price": entry_open,
+            "trigger_price": stop_price,
             "take_profit_armed": False,
             "take_profit_signal_reasons": [],
             "ma5_close": None,
@@ -323,7 +353,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     total_sells = 0
 
     prev_equity = cash
-    for date_text in market_dates:
+    for day_index, date_text in enumerate(market_dates):
         cash_start = cash
         day_ops: List[Dict[str, object]] = []
         day_fees = 0.0
@@ -338,6 +368,8 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             if row is None:
                 remaining.append(holding)
                 continue
+            row = row.copy()
+            row["_trade_index"] = day_index
             decision = sell_decision(row, holding)
             reasons = list(decision["reasons"])
             if not reasons:
@@ -417,6 +449,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     name=str(signal.name),
                     shares=lot_size,
                     entry_date=date_text,
+                    entry_trade_index=day_index,
                     entry_price=price,
                     entry_open=float(signal.open),
                     entry_fee=fees["total_fee"],
@@ -573,7 +606,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "lot_size": lot_size,
-        "assumption": "每天按收盘价检查已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；后续交易日优先判断止损，若收盘价低于买入日开盘价则按收盘价止损卖出；未触发止损时，放量阴线、阴十字星、连续两根阴线任一成立即按收盘价止盈卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
+        "assumption": "每天按收盘价检查已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；止损优先：买入后第二个交易日若收盘价低于买入日开盘价，则按收盘价止损；从第三个交易日开始，若收盘价低于买入价，则按收盘价止损；未触发止损时，放量阴线、阴十字星、连续两根阴线任一成立即按收盘价止盈卖出。随后按当日公式评分排名以收盘价买入1手；买入时刻按收盘集合竞价/15:00近似；已计入佣金、印花税、过户费；不计滑点和真实排队成交。",
         "fee_model": {
             "commission_rate": args.commission_rate,
             "min_commission": args.min_commission,
@@ -582,7 +615,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         },
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
-            "stop_loss": "止损优先：后续交易日收盘价低于买入日开盘价时，按当日收盘价止损卖出。",
+            "stop_loss": "止损优先：买入后第二个交易日收盘价低于买入日开盘价时止损；从第三个交易日开始，收盘价低于买入价时止损；均按触发日收盘价卖出。",
             "volume_bearish": "放量阴线：C<O，实体跌幅(open-close)/open>2%，且V>REF(V,1)，按收盘价卖出。",
             "bearish_doji": "阴十字星：C<O 且实体占当日高低振幅比例小于20%；阳线十字星不卖出。",
             "two_bearish": "连续两根阴线：当日C<O且前一交易日C<O，按收盘价卖出。",

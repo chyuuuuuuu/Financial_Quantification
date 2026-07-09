@@ -173,6 +173,7 @@ def holding_from_dict(item: Dict[str, object]) -> SlotHolding:
         entry_gross=float(item.get("entry_gross") or 0.0),
         entry_rank=int(item.get("entry_rank") or item.get("rank") or 0),
         entry_score=float(item.get("entry_score") or item.get("formula_score") or 0.0),
+        entry_trade_index=int(item.get("entry_trade_index") if item.get("entry_trade_index") is not None else -1),
         take_profit_armed=bool(item.get("take_profit_armed") or False),
         take_profit_trigger_date=str(item.get("take_profit_trigger_date") or ""),
         take_profit_trigger_reason=str(item.get("take_profit_trigger_reason") or ""),
@@ -353,6 +354,12 @@ def build_plan(
                 }
             )
             continue
+        row = row.copy()
+        row["_trade_index"] = int(row.name) if row.name is not None else -1
+        if getattr(holding, "entry_trade_index", -1) < 0 and hist is not None and "date_text" in hist.columns:
+            entry_match = hist[hist["date_text"] == holding.entry_date]
+            if not entry_match.empty:
+                holding.entry_trade_index = int(entry_match.index[0])
         decision = sell_decision(row, holding)  # type: ignore[arg-type]
         reasons = list(decision["reasons"])
         if not reasons:
@@ -474,6 +481,7 @@ def build_plan(
                 entry_gross=float(gross),
                 entry_rank=int(row.get("rank") or 0),
                 entry_score=float(row.get("formula_score") or 0.0),
+                entry_trade_index=-1,
             )
             next_lot_id += 1
             cash -= cost
@@ -613,7 +621,7 @@ def build_report(
             "schedule": "交易日15:00生成当日公式Top3跟单计划。",
             "position": "本金15000，三等分仓位；每个空槽使用剩余现金按剩余槽位均分后买入整手。",
             "buy": buy_rule_text(args),
-            "sell": "T+1；买入日当日不卖出；后续交易日优先判断止损，收盘价低于买入日开盘价则按收盘价止损；未止损时，放量阴线、阴十字星、连续两阴任一成立即按收盘价止盈卖出。",
+            "sell": "T+1；买入日当日不卖出；止损优先：第二个交易日收盘价低于买入日开盘价则按收盘价止损；第三个交易日起收盘价低于买入价则按收盘价止损；未止损时，放量阴线、阴十字星、连续两阴任一成立即按收盘价止盈卖出。",
             "fees": {
                 "commission_rate": args.commission_rate,
                 "min_commission": args.min_commission,
