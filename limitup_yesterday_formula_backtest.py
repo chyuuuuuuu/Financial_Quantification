@@ -173,6 +173,9 @@ def evaluate_yesterday_limitup_formula(
     start: pd.Timestamp,
     end: pd.Timestamp,
     buy_next_trading_day: bool = False,
+    pct_range_signal: bool = False,
+    min_signal_pct: float = 5.0,
+    max_signal_pct: float = 9.9,
 ) -> Tuple[List[Dict[str, object]], List[str]]:
     if hist.empty or len(hist) < 35:
         return [], []
@@ -237,8 +240,13 @@ def evaluate_yesterday_limitup_formula(
             continue
         if not (close[y - 1] < triple_close and close[y] >= triple_close and close[y] > open_[y]):
             continue
-        if not strict_mainboard_limit_up(float(close[y]), float(close[y - 1])):
-            continue
+        signal_pct = float(pct_chg[y]) if math.isfinite(float(pct_chg[y])) else (float(close[y]) / float(close[y - 1]) - 1.0) * 100.0
+        if pct_range_signal:
+            if not (signal_pct >= float(min_signal_pct) and signal_pct < float(max_signal_pct)):
+                continue
+        else:
+            if not strict_mainboard_limit_up(float(close[y]), float(close[y - 1])):
+                continue
 
         buy_idx = y + 1 if buy_next_trading_day else y
         if buy_idx >= len(hist):
@@ -278,7 +286,7 @@ def evaluate_yesterday_limitup_formula(
                 "buy_close": round(float(close[buy_idx]), 4),
                 "signal_close": round(float(close[y]), 4),
                 "signal_open": round(float(open_[y]), 4),
-                "signal_pct_chg": round(float(pct_chg[y]), 4),
+                "signal_pct_chg": round(signal_pct, 4),
                 "amount": round(float(amount[y]), 2),
                 "volume": round(float(volume[y]), 2),
                 "formula_score": score,
@@ -294,7 +302,11 @@ def evaluate_yesterday_limitup_formula(
                 "prior_close_gap_pct": round(prior_close_gap_pct, 4),
                 "macd_dif": round(float(dif_arr[y]), 6),
                 "macd_dea": round(float(dea_arr[y]), 6),
-                "reason": "当日涨停且满足三倍阳缩量回调突破公式，次日开盘买入" if buy_next_trading_day else "当日涨停且满足三倍阳缩量回调突破公式，假设涨停收盘可买入",
+                "reason": (
+                    f"当日涨幅{min_signal_pct:g}%至{max_signal_pct:g}%且满足三倍阳缩量回调突破公式，收盘买入"
+                    if pct_range_signal
+                    else ("当日涨停且满足三倍阳缩量回调突破公式，次日开盘买入" if buy_next_trading_day else "当日涨停且满足三倍阳缩量回调突破公式，假设涨停收盘可买入")
+                ),
             }
         )
     return rows, market_dates
@@ -322,6 +334,9 @@ def build_signals_and_histories(args: argparse.Namespace) -> Tuple[pd.DataFrame,
             start,
             end,
             buy_next_trading_day=bool(getattr(args, "buy_next_trading_day", False) or getattr(args, "buy_next_signal_close_limit", False)),
+            pct_range_signal=bool(getattr(args, "pct_range_signal", False)),
+            min_signal_pct=float(getattr(args, "min_signal_pct", 5.0)),
+            max_signal_pct=float(getattr(args, "max_signal_pct", 9.9)),
         )
         histories[code] = hist
         all_rows.extend(rows)
@@ -525,7 +540,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     signal_date=str(signal.signal_date),
                     entry_trade_index=trade_index,
                     entry_price=price,
-                    entry_open=float(signal.buy_open) if (getattr(args, "buy_next_trading_day", False) or getattr(args, "buy_next_signal_close_limit", False)) else price,
+                    entry_open=float(signal.buy_open) if (getattr(args, "buy_next_trading_day", False) or getattr(args, "buy_next_signal_close_limit", False) or getattr(args, "pct_range_signal", False)) else price,
                     entry_fee=fees["total_fee"],
                     entry_gross=gross,
                     entry_rank=int(signal.rank),
@@ -657,10 +672,13 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     }
     buy_next_day = bool(getattr(args, "buy_next_trading_day", False) or getattr(args, "buy_next_signal_close_limit", False))
     buy_next_signal_close_limit = bool(getattr(args, "buy_next_signal_close_limit", False))
+    pct_range_signal = bool(getattr(args, "pct_range_signal", False))
+    min_signal_pct = float(getattr(args, "min_signal_pct", 5.0))
+    max_signal_pct = float(getattr(args, "max_signal_pct", 9.9))
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "port": "limitup_formula_signal_next_limit_backtest" if buy_next_signal_close_limit else ("limitup_formula_signal_next_open_backtest" if buy_next_day else "limitup_formula_signal_close_backtest"),
-        "strategy_name": "涨停公式次日挂涨停收盘价买入Top3" if buy_next_signal_close_limit else ("涨停公式次日开盘买入Top3" if buy_next_day else "涨停当天公式收盘买入Top3"),
+        "port": "formula_pct_range_signal_close_backtest" if pct_range_signal else ("limitup_formula_signal_next_limit_backtest" if buy_next_signal_close_limit else ("limitup_formula_signal_next_open_backtest" if buy_next_day else "limitup_formula_signal_close_backtest")),
+        "strategy_name": f"公式涨幅{min_signal_pct:g}%至{max_signal_pct:g}%收盘买入Top3" if pct_range_signal else ("涨停公式次日挂涨停收盘价买入Top3" if buy_next_signal_close_limit else ("涨停公式次日开盘买入Top3" if buy_next_day else "涨停当天公式收盘买入Top3")),
         "start_date": str(args.start_date),
         "end_date": str(args.end_date),
         "universe_count": universe_count,
@@ -668,8 +686,15 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "slots": int(args.slots),
         "lot_size": int(args.lot_size),
         "assumption": (
-            "运行日T使用当日收盘后数据选股；T日必须严格涨停并完整满足三倍阳缩量回调突破公式；"
+            (
+                f"运行日T使用当日收盘后数据选股；T日必须完整满足三倍阳缩量回调突破公式，且当日涨幅>={min_signal_pct:g}%、<{max_signal_pct:g}%；"
+                if pct_range_signal
+                else "运行日T使用当日收盘后数据选股；T日必须严格涨停并完整满足三倍阳缩量回调突破公式；"
+            )
             + (
+                "涨停不可买入，本策略用涨幅上限排除涨停，按T日收盘价成交；"
+                if pct_range_signal
+                else
                 "假设涨停日不可买入，T+1交易日挂T日涨停收盘价买入；若T+1最低价未触及挂单价则不成交并跳过；"
                 if buy_next_signal_close_limit
                 else "假设涨停日不可买入，信号顺延到T+1交易日并按T+1开盘价成交；"
@@ -682,7 +707,10 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
             "buy_next_trading_day": buy_next_day,
             "buy_next_signal_close_limit": buy_next_signal_close_limit,
-            "description": "涨停日不可买入时，次一交易日挂涨停日收盘价；T+1最低价未触及则视为买不入。" if buy_next_signal_close_limit else ("涨停日不可买入时，信号顺延到次一交易日开盘买入。" if buy_next_day else "涨停不可买入时，本策略所有信号都因严格涨停条件被跳过。"),
+            "pct_range_signal": pct_range_signal,
+            "min_signal_pct": min_signal_pct,
+            "max_signal_pct": max_signal_pct,
+            "description": f"不买涨停，选择完整公式成立且当日涨幅>={min_signal_pct:g}%、<{max_signal_pct:g}%的候选，按收盘价买入。" if pct_range_signal else ("涨停日不可买入时，次一交易日挂涨停日收盘价；T+1最低价未触及则视为买不入。" if buy_next_signal_close_limit else ("涨停日不可买入时，信号顺延到次一交易日开盘买入。" if buy_next_day else "涨停不可买入时，本策略所有信号都因严格涨停条件被跳过。")),
         },
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
@@ -738,6 +766,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--block-limit-up-buys", action="store_true")
     parser.add_argument("--buy-next-trading-day", action="store_true")
     parser.add_argument("--buy-next-signal-close-limit", action="store_true")
+    parser.add_argument("--pct-range-signal", action="store_true")
+    parser.add_argument("--min-signal-pct", type=float, default=5.0)
+    parser.add_argument("--max-signal-pct", type=float, default=9.9)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/limitup_formula_signal_close_backtest_2026.json")
