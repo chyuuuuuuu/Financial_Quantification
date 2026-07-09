@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-07-09T15:09:15",
+  "generated_at": "2026-07-09T15:54:58",
   "snapshot_date": "2026-07-09",
-  "snapshot_time": "2026-07-09T15:00:00",
+  "snapshot_time": "2026-07-09T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 6,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 82.9155,
   "avg_breakout_gap_pct": 1.7221,
   "selected_rows": [
     {
       "snapshot_date": "2026-07-09",
-      "snapshot_time": "2026-07-09T15:00:00",
+      "snapshot_time": "2026-07-09T15:30:00",
       "rank": 1,
       "code": "603648",
       "name": "畅联股份",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-07-09",
-      "snapshot_time": "2026-07-09T15:00:00",
+      "snapshot_time": "2026-07-09T15:30:00",
       "rank": 2,
       "code": "600208",
       "name": "衢州发展",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-07-09",
-      "snapshot_time": "2026-07-09T15:00:00",
+      "snapshot_time": "2026-07-09T15:30:00",
       "rank": 3,
       "code": "002647",
       "name": "仁东控股",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-07-09",
-      "snapshot_time": "2026-07-09T15:00:00",
+      "snapshot_time": "2026-07-09T15:30:00",
       "rank": 4,
       "code": "600992",
       "name": "贵绳股份",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-07-09",
-      "snapshot_time": "2026-07-09T15:00:00",
+      "snapshot_time": "2026-07-09T15:30:00",
       "rank": 5,
       "code": "603607",
       "name": "京华激光",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-07-09",
-      "snapshot_time": "2026-07-09T15:00:00",
+      "snapshot_time": "2026-07-09T15:30:00",
       "rank": 6,
       "code": "002901",
       "name": "大博医疗",
