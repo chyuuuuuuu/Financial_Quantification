@@ -166,7 +166,14 @@ def score_signal(
     return round(base_score + contraction_score + triple_score + timing_score + macd_score + breakout_score - heat_penalty, 3)
 
 
-def evaluate_yesterday_limitup_formula(code: str, name: str, hist: pd.DataFrame, start: pd.Timestamp, end: pd.Timestamp) -> Tuple[List[Dict[str, object]], List[str]]:
+def evaluate_yesterday_limitup_formula(
+    code: str,
+    name: str,
+    hist: pd.DataFrame,
+    start: pd.Timestamp,
+    end: pd.Timestamp,
+    buy_next_trading_day: bool = False,
+) -> Tuple[List[Dict[str, object]], List[str]]:
     if hist.empty or len(hist) < 35:
         return [], []
     hist = hist.sort_values("date").drop_duplicates("date", keep="last").reset_index(drop=True)
@@ -233,6 +240,15 @@ def evaluate_yesterday_limitup_formula(code: str, name: str, hist: pd.DataFrame,
         if not strict_mainboard_limit_up(float(close[y]), float(close[y - 1])):
             continue
 
+        buy_idx = y + 1 if buy_next_trading_day else y
+        if buy_idx >= len(hist):
+            continue
+        buy_date = pd.Timestamp(dates.iloc[buy_idx])
+        if buy_date < start or buy_date > end:
+            continue
+        if not valid_price[buy_idx]:
+            continue
+
         volume_vs_prev = float(volume[triple_idx] / volume[triple_idx - 1]) if triple_idx > 0 and volume[triple_idx - 1] > 0 else 0.0
         vol_ma5_vs_triple = float(vol_ma5[y] / triple_volume) if triple_volume > 0 else float("nan")
         vol_ma10_vs_triple = float(vol_ma10[y] / triple_volume) if triple_volume > 0 else float("nan")
@@ -251,15 +267,15 @@ def evaluate_yesterday_limitup_formula(code: str, name: str, hist: pd.DataFrame,
         )
         rows.append(
             {
-                "snapshot_date": date_text[y],
+                "snapshot_date": date_text[buy_idx],
                 "signal_date": date_text[y],
                 "code": normalize_code(code),
                 "name": name,
                 "rank": None,
-                "buy_open": round(float(open_[y]), 4),
-                "buy_high": round(float(high[y]), 4),
-                "buy_low": round(float(low[y]), 4),
-                "buy_close": round(float(close[y]), 4),
+                "buy_open": round(float(open_[buy_idx]), 4),
+                "buy_high": round(float(high[buy_idx]), 4),
+                "buy_low": round(float(low[buy_idx]), 4),
+                "buy_close": round(float(close[buy_idx]), 4),
                 "signal_close": round(float(close[y]), 4),
                 "signal_open": round(float(open_[y]), 4),
                 "signal_pct_chg": round(float(pct_chg[y]), 4),
@@ -278,7 +294,7 @@ def evaluate_yesterday_limitup_formula(code: str, name: str, hist: pd.DataFrame,
                 "prior_close_gap_pct": round(prior_close_gap_pct, 4),
                 "macd_dif": round(float(dif_arr[y]), 6),
                 "macd_dea": round(float(dea_arr[y]), 6),
-                "reason": "当日涨停且满足三倍阳缩量回调突破公式，假设涨停收盘可买入",
+                "reason": "当日涨停且满足三倍阳缩量回调突破公式，次日开盘买入" if buy_next_trading_day else "当日涨停且满足三倍阳缩量回调突破公式，假设涨停收盘可买入",
             }
         )
     return rows, market_dates
@@ -299,7 +315,14 @@ def build_signals_and_histories(args: argparse.Namespace) -> Tuple[pd.DataFrame,
         hist = prepare_history(path)
         if hist is None or hist.empty:
             continue
-        rows, dates = evaluate_yesterday_limitup_formula(code, str(item.name), hist, start, end)
+        rows, dates = evaluate_yesterday_limitup_formula(
+            code,
+            str(item.name),
+            hist,
+            start,
+            end,
+            buy_next_trading_day=bool(getattr(args, "buy_next_trading_day", False)),
+        )
         histories[code] = hist
         all_rows.extend(rows)
         market_dates.update(dates)
@@ -449,7 +472,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                         }
                     )
                     continue
-                price = float(signal.buy_close)
+                price = float(signal.buy_open) if getattr(args, "buy_next_trading_day", False) else float(signal.buy_close)
                 shares, cost, fees = max_affordable_shares(price, budget, args)
                 if shares <= 0:
                     skipped += 1
@@ -472,7 +495,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     signal_date=str(signal.signal_date),
                     entry_trade_index=trade_index,
                     entry_price=price,
-                    entry_open=price,
+                    entry_open=float(signal.buy_open),
                     entry_fee=fees["total_fee"],
                     entry_gross=gross,
                     entry_rank=int(signal.rank),
@@ -501,8 +524,10 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                         "rank": holding.entry_rank,
                         "formula_score": round(holding.entry_score, 3),
                         "signal_date": holding.signal_date,
+                        "buy_open": round(float(signal.buy_open), 4),
+                        "buy_close": round(float(signal.buy_close), 4),
                         "slot_budget": round(budget, 2),
-                        "execution_time": "涨停日收盘",
+                        "execution_time": "次日开盘" if getattr(args, "buy_next_trading_day", False) else "涨停日收盘",
                     }
                 )
                 break
@@ -597,10 +622,11 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "sell_days": int(sum(1 for row in daily_rows if row["sell_count"] > 0)),
         "avg_holdings_count": round(float(np.mean([row["holdings_count"] for row in daily_rows])), 4) if daily_rows else 0.0,
     }
+    buy_next_day = bool(getattr(args, "buy_next_trading_day", False))
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "port": "limitup_formula_signal_close_backtest",
-        "strategy_name": "涨停当天公式收盘买入Top3",
+        "port": "limitup_formula_signal_next_open_backtest" if buy_next_day else "limitup_formula_signal_close_backtest",
+        "strategy_name": "涨停公式次日开盘买入Top3" if buy_next_day else "涨停当天公式收盘买入Top3",
         "start_date": str(args.start_date),
         "end_date": str(args.end_date),
         "universe_count": universe_count,
@@ -609,12 +635,17 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "lot_size": int(args.lot_size),
         "assumption": (
             "运行日T使用当日收盘后数据选股；T日必须严格涨停并完整满足三倍阳缩量回调突破公式；"
-            + ("假设涨停不可买入，所有涨停信号均跳过；" if getattr(args, "block_limit_up_buys", False) else "假设涨停当天收盘可以买入，按T日收盘价成交；")
+            + (
+                "假设涨停日不可买入，信号顺延到T+1交易日并按T+1开盘价成交；"
+                if buy_next_day
+                else ("假设涨停不可买入，所有涨停信号均跳过；" if getattr(args, "block_limit_up_buys", False) else "假设涨停当天收盘可以买入，按T日收盘价成交；")
+            )
             + "买入后第二个交易日若收盘价低于买入当天开盘价则按收盘价止损；从第三个交易日开始，若收盘价低于买入价则按收盘价止损；未止损时，放量阴线、阴线十字星、连续两根阴线任一出现即按收盘价卖出。"
         ),
         "buy_block_rule": {
             "block_limit_up_buys": bool(getattr(args, "block_limit_up_buys", False)),
-            "description": "涨停不可买入时，本策略所有信号都因严格涨停条件被跳过。",
+            "buy_next_trading_day": buy_next_day,
+            "description": "涨停日不可买入时，信号顺延到次一交易日开盘买入。" if buy_next_day else "涨停不可买入时，本策略所有信号都因严格涨停条件被跳过。",
         },
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
@@ -668,6 +699,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stamp-tax-rate", type=float, default=0.0005)
     parser.add_argument("--transfer-fee-rate", type=float, default=0.00001)
     parser.add_argument("--block-limit-up-buys", action="store_true")
+    parser.add_argument("--buy-next-trading-day", action="store_true")
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
     parser.add_argument("--output", default="static/reports/limitup_formula_signal_close_backtest_2026.json")
