@@ -32,6 +32,7 @@ class Holding:
     shares: int
     entry_date: str
     signal_date: str
+    entry_trade_index: int
     entry_price: float
     entry_open: float
     entry_fee: float
@@ -74,14 +75,21 @@ def two_bearish(row: pd.Series) -> bool:
     return close < open_ and prev_close < prev_open
 
 
-def sell_decision(row: pd.Series, holding: Holding) -> Dict[str, object]:
+def sell_decision(row: pd.Series, holding: Holding, trade_index: int) -> Dict[str, object]:
     close = row_float(row, "收盘")
-    if holding.entry_price > 0 and close < holding.entry_price:
+    days_after_entry = trade_index - holding.entry_trade_index
+    if days_after_entry == 1:
+        stop_price = holding.entry_open
+        stop_reason = "第二天收盘价跌破买入日开盘价止损"
+    else:
+        stop_price = holding.entry_price
+        stop_reason = "第三天后收盘价跌破买入价止损"
+    if days_after_entry >= 1 and stop_price > 0 and close < stop_price:
         return {
-            "reasons": ["收盘价跌破买入价止损"],
+            "reasons": [stop_reason],
             "price": close,
             "execution_time": "收盘止损",
-            "trigger_price": holding.entry_price,
+            "trigger_price": stop_price,
         }
 
     reasons: List[str] = []
@@ -335,7 +343,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     total_sells = 0
     prev_equity = cash
 
-    for date_text in market_dates:
+    for trade_index, date_text in enumerate(market_dates):
         cash_start = cash
         day_ops: List[Dict[str, object]] = []
         day_fees = 0.0
@@ -350,7 +358,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
             if row is None:
                 remaining.append(holding)
                 continue
-            decision = sell_decision(row, holding)
+            decision = sell_decision(row, holding, trade_index)
             reasons = list(decision["reasons"])
             if not reasons:
                 remaining.append(holding)
@@ -440,6 +448,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     shares=shares,
                     entry_date=date_text,
                     signal_date=str(signal.signal_date),
+                    entry_trade_index=trade_index,
                     entry_price=price,
                     entry_open=price,
                     entry_fee=fees["total_fee"],
@@ -574,10 +583,10 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "initial_cash": float(args.initial_cash),
         "slots": int(args.slots),
         "lot_size": int(args.lot_size),
-        "assumption": "运行日T只使用T-1数据选股；T-1必须严格涨停并完整满足昨日版三倍阳缩量回调突破公式；T日按开盘价A买入；T+1后若收盘价B低于A则按B止损；未止损时，放量阴线、阴线十字星、连续两根阴线任一出现即按收盘价卖出；假设涨停可以买入。",
+        "assumption": "运行日T只使用T-1数据选股；T-1必须严格涨停并完整满足昨日版三倍阳缩量回调突破公式；T日按开盘价A买入；买入后第二个交易日若收盘价低于买入当天开盘价则按收盘价止损；从第三个交易日开始，若收盘价低于买入价则按收盘价止损；未止损时，放量阴线、阴线十字星、连续两根阴线任一出现即按收盘价卖出；假设涨停可以买入。",
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
-            "stop_loss": "最高优先级：后续交易日收盘价B低于买入价A时，按B卖出。",
+            "stop_loss": "最高优先级：买入后第二个交易日收盘价低于买入当天开盘价时止损；从第三个交易日开始，收盘价低于买入价时止损；均按触发日收盘价卖出。",
             "volume_bearish": "放量阴线：C<O且V>REF(V,1)，按收盘价卖出。",
             "bearish_doji": "阴线十字星：C<O且实体占当日高低振幅比例小于20%，按收盘价卖出。",
             "two_bearish": "连续两根阴线：当日C<O且前一交易日C<O，按收盘价卖出。",
