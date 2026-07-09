@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Backtest yesterday-limit-up formula signals bought at next open."""
+"""Backtest limit-up formula signals bought on the signal close."""
 
 from __future__ import annotations
 
@@ -196,12 +196,12 @@ def evaluate_yesterday_limitup_formula(code: str, name: str, hist: pd.DataFrame,
     triple_mask = (volume > 3.0 * prev_volume) & (close > open_) & valid_price
     rows: List[Dict[str, object]] = []
 
-    for buy_idx in range(2, len(hist)):
-        buy_date = pd.Timestamp(dates.iloc[buy_idx])
-        if buy_date < start or buy_date > end:
+    for signal_idx in range(1, len(hist)):
+        signal_date = pd.Timestamp(dates.iloc[signal_idx])
+        if signal_date < start or signal_date > end:
             continue
-        y = buy_idx - 1
-        if not (valid_price[buy_idx] and valid_price[y] and valid_price[y - 1]):
+        y = signal_idx
+        if not (valid_price[y] and valid_price[y - 1]):
             continue
         triple_candidates = np.flatnonzero(triple_mask[: y + 1])
         if len(triple_candidates) == 0:
@@ -251,15 +251,15 @@ def evaluate_yesterday_limitup_formula(code: str, name: str, hist: pd.DataFrame,
         )
         rows.append(
             {
-                "snapshot_date": date_text[buy_idx],
+                "snapshot_date": date_text[y],
                 "signal_date": date_text[y],
                 "code": normalize_code(code),
                 "name": name,
                 "rank": None,
-                "buy_open": round(float(open_[buy_idx]), 4),
-                "buy_high": round(float(high[buy_idx]), 4),
-                "buy_low": round(float(low[buy_idx]), 4),
-                "buy_close": round(float(close[buy_idx]), 4),
+                "buy_open": round(float(open_[y]), 4),
+                "buy_high": round(float(high[y]), 4),
+                "buy_low": round(float(low[y]), 4),
+                "buy_close": round(float(close[y]), 4),
                 "signal_close": round(float(close[y]), 4),
                 "signal_open": round(float(open_[y]), 4),
                 "signal_pct_chg": round(float(pct_chg[y]), 4),
@@ -278,7 +278,7 @@ def evaluate_yesterday_limitup_formula(code: str, name: str, hist: pd.DataFrame,
                 "prior_close_gap_pct": round(prior_close_gap_pct, 4),
                 "macd_dif": round(float(dif_arr[y]), 6),
                 "macd_dea": round(float(dea_arr[y]), 6),
-                "reason": "昨日涨停且昨日满足三倍阳缩量回调突破公式，今日开盘买入",
+                "reason": "当日涨停且满足三倍阳缩量回调突破公式，假设涨停收盘可买入",
             }
         )
     return rows, market_dates
@@ -427,7 +427,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                 code = normalize_code(signal.code)
                 if code in bought_codes or code in sold_codes:
                     continue
-                price = float(signal.buy_open)
+                price = float(signal.buy_close)
                 shares, cost, fees = max_affordable_shares(price, budget, args)
                 if shares <= 0:
                     skipped += 1
@@ -480,7 +480,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                         "formula_score": round(holding.entry_score, 3),
                         "signal_date": holding.signal_date,
                         "slot_budget": round(budget, 2),
-                        "execution_time": "次日开盘",
+                        "execution_time": "涨停日收盘",
                     }
                 )
                 break
@@ -575,15 +575,15 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
     }
     report = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "port": "yesterday_limitup_formula_open_backtest",
-        "strategy_name": "昨日涨停公式次日开盘买入Top3",
+        "port": "limitup_formula_signal_close_backtest",
+        "strategy_name": "涨停当天公式收盘买入Top3",
         "start_date": str(args.start_date),
         "end_date": str(args.end_date),
         "universe_count": universe_count,
         "initial_cash": float(args.initial_cash),
         "slots": int(args.slots),
         "lot_size": int(args.lot_size),
-        "assumption": "运行日T只使用T-1数据选股；T-1必须严格涨停并完整满足昨日版三倍阳缩量回调突破公式；T日按开盘价A买入；买入后第二个交易日若收盘价低于买入当天开盘价则按收盘价止损；从第三个交易日开始，若收盘价低于买入价则按收盘价止损；未止损时，放量阴线、阴线十字星、连续两根阴线任一出现即按收盘价卖出；假设涨停可以买入。",
+        "assumption": "运行日T使用当日收盘后数据选股；T日必须严格涨停并完整满足三倍阳缩量回调突破公式；假设涨停当天收盘可以买入，按T日收盘价成交；买入后第二个交易日若收盘价低于买入当天开盘价则按收盘价止损；从第三个交易日开始，若收盘价低于买入价则按收盘价止损；未止损时，放量阴线、阴线十字星、连续两根阴线任一出现即按收盘价卖出。",
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
             "stop_loss": "最高优先级：买入后第二个交易日收盘价低于买入当天开盘价时止损；从第三个交易日开始，收盘价低于买入价时止损；均按触发日收盘价卖出。",
@@ -637,10 +637,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--transfer-fee-rate", type=float, default=0.00001)
     parser.add_argument("--universe-file", default="data_cache/volume_contraction_screen_20260701_mainboard_entry_close/refresh_status.csv")
     parser.add_argument("--history-dir", default="data_cache/main_uptrend/hist")
-    parser.add_argument("--output", default="static/reports/yesterday_limitup_formula_open_backtest_2026.json")
-    parser.add_argument("--daily-csv", default="data_cache/formula_breakout_backtests/yesterday_limitup_formula_open_2026_daily.csv")
-    parser.add_argument("--operations-csv", default="data_cache/formula_breakout_backtests/yesterday_limitup_formula_open_2026_operations.csv")
-    parser.add_argument("--signals-csv", default="data_cache/formula_breakout_backtests/yesterday_limitup_formula_open_2026_signals.csv")
+    parser.add_argument("--output", default="static/reports/limitup_formula_signal_close_backtest_2026.json")
+    parser.add_argument("--daily-csv", default="data_cache/formula_breakout_backtests/limitup_formula_signal_close_2026_daily.csv")
+    parser.add_argument("--operations-csv", default="data_cache/formula_breakout_backtests/limitup_formula_signal_close_2026_operations.csv")
+    parser.add_argument("--signals-csv", default="data_cache/formula_breakout_backtests/limitup_formula_signal_close_2026_signals.csv")
     parser.add_argument("--signal-display-limit", type=int, default=500)
     parser.add_argument("--progress-every", type=int, default=600)
     return parser.parse_args()
