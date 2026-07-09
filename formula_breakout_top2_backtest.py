@@ -604,7 +604,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         "slots": int(args.slots),
         "assumption": (
             "每天按收盘价处理已有仓位，日线回测用当日收盘价近似；T+1交易，买入日当日不卖出；"
-            "后续交易日优先判断止损，若收盘价低于买入日收盘价则按收盘价止损卖出；"
+            "后续交易日优先判断止损，若收盘价低于买入日开盘价则按收盘价止损卖出；"
             "未触发止损时，放量阴线、阴十字星、连续两根阴线任一成立即按收盘价止盈卖出。"
             + (f"买入候选必须满足公式评分>{min_formula_score:g}，低于或等于该分数不买入；" if min_formula_score > 0 else "")
             + (f"买入候选按历史成交额/换手率估算流通市值必须>={min_float_market_cap / 100000000:.0f}亿；" if min_float_market_cap > 0 else "")
@@ -614,7 +614,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
         ),
         "sell_rules": {
             "t_plus_one": "T+1交易；买入日当日不卖出。",
-            "stop_loss": "止损优先：后续交易日收盘价低于买入日收盘价时，按当日收盘价止损卖出。",
+            "stop_loss": "止损优先：后续交易日收盘价低于买入日开盘价时，按当日收盘价止损卖出。",
             "volume_bearish": "放量阴线：C<O，实体跌幅(open-close)/open>2%，且V>REF(V,1)，按收盘价卖出。",
             "bearish_doji": "阴十字星：C<O 且实体占当日高低振幅比例小于20%；阳线十字星不卖出。",
             "two_bearish": "连续两根阴线：当日C<O且前一交易日C<O，按收盘价卖出。",
