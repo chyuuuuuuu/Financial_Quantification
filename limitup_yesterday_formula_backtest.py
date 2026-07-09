@@ -525,7 +525,7 @@ def simulate(args: argparse.Namespace) -> Dict[str, object]:
                     signal_date=str(signal.signal_date),
                     entry_trade_index=trade_index,
                     entry_price=price,
-                    entry_open=float(signal.buy_open),
+                    entry_open=float(signal.buy_open) if (getattr(args, "buy_next_trading_day", False) or getattr(args, "buy_next_signal_close_limit", False)) else price,
                     entry_fee=fees["total_fee"],
                     entry_gross=gross,
                     entry_rank=int(signal.rank),
