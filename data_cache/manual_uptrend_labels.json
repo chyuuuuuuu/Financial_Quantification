@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "code": "000032",
+      "name": "ShenSangdaA",
+      "entry_date": "2025-12-24",
+      "positive_start": "2026-05-29",
+      "positive_end": "2026-06-11",
+      "positive_dates": ["2026-06-09", "2026-06-10", "2026-06-11"],
+      "run_date": "2026-06-11",
+      "confirm_date": "2026-06-12",
+      "include_run_date": true,
+      "sample_weight": 14,
+      "note": "User-confirmed: 2025-12-24 3x+ entry volume; 2026-06-11 watch/start; 2026-06-12 intraday pullback then confirmation."
+    },
+    {
+      "code": "161226",
+      "name": "GuotouSilverLOF",
+      "entry_date": "2025-02-05",
+      "positive_start": "2025-03-24",
+      "positive_end": "2025-04-03",
+      "run_date": "2025-04-07",
+      "include_run_date": true,
+      "sample_weight": 8,
+      "note": "User-confirmed: 2025-02-05 3x+ entry volume; 2025-04-07 second heavy-volume absorption candle starts main run."
+    },
+    {
+      "code": "002669",
+      "name": "KangdaNewMaterials",
+      "entry_date": "2026-05-27",
+      "positive_start": "2026-06-12",
+      "positive_end": "2026-06-18",
+      "positive_dates": ["2026-05-29", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22"],
+      "run_date": "2026-06-22",
+      "confirm_date": "2026-06-22",
+      "include_run_date": true,
+      "sample_weight": 12,
+      "label_type": "breakout_pullback_hold",
+      "note": "User-confirmed breakout ticket: 2026-05-27 volume breakout, later pullbacks held above breakout-day low and resumed higher into 2026-06-22."
+    },
+    {
+      "code": "002171",
+      "name": "ChujiangNewMaterials",
+      "entry_date": "2026-06-03",
+      "positive_start": "2026-06-10",
+      "positive_end": "2026-06-18",
+      "positive_dates": ["2026-06-10", "2026-06-11", "2026-06-12", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22"],
+      "run_date": "2026-06-22",
+      "confirm_date": "2026-06-22",
+      "include_run_date": true,
+      "sample_weight": 12,
+      "label_type": "breakout_pullback_hold",
+      "note": "User-confirmed breakout ticket: 2026-06-03 volume/amount breakout, pullback held above breakout-day low and resumed higher into 2026-06-22."
+    },
+    {
+      "code": "000691",
+      "name": "YataiIndustry",
+      "entry_date": "2026-06-01",
+      "positive_start": "2026-06-09",
+      "positive_end": "2026-06-11",
+      "positive_dates": ["2026-06-09", "2026-06-10", "2026-06-11"],
+      "run_date": "2026-06-11",
+      "confirm_date": "2026-06-11",
+      "include_run_date": true,
+      "sample_weight": 12,
+      "label_type": "entry_close_breakout_macd_water",
+      "note": "User-confirmed: 2026-06-01 3x+ bullish entry volume; volume contracted, MACD stayed above zero, and 2026-06-10/11 bullish candles closed above the entry close."
+    }
+  ]
+}
