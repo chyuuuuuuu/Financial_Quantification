@@ -1,6 +1,13 @@
 {
-  "generated_at": "2026-07-31T15:58:07",
+  "generated_at": "2026-08-03T15:06:26",
   "dates": [
+    {
+      "date": "2026-08-03",
+      "file": "formula_breakout_20260803.json",
+      "selected_count": 32,
+      "avg_formula_score": 89.0706,
+      "generated_at": "2026-08-03T15:06:26"
+    },
     {
       "date": "2026-07-31",
       "file": "formula_breakout_20260731.json",
