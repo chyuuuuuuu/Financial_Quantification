@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-11T15:07:00",
+  "generated_at": "2026-09-11T16:04:40",
   "snapshot_date": "2026-09-11",
-  "snapshot_time": "2026-09-11T15:00:00",
+  "snapshot_time": "2026-09-11T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 4,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 91.0312,
   "avg_breakout_gap_pct": 2.6426,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-11",
-      "snapshot_time": "2026-09-11T15:00:00",
+      "snapshot_time": "2026-09-11T15:30:00",
       "rank": 1,
       "code": "600982",
       "name": "宁波能源",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-11",
-      "snapshot_time": "2026-09-11T15:00:00",
+      "snapshot_time": "2026-09-11T15:30:00",
       "rank": 2,
       "code": "600032",
       "name": "XD浙江新",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-11",
-      "snapshot_time": "2026-09-11T15:00:00",
+      "snapshot_time": "2026-09-11T15:30:00",
       "rank": 3,
       "code": "600410",
       "name": "华胜天成",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-11",
-      "snapshot_time": "2026-09-11T15:00:00",
+      "snapshot_time": "2026-09-11T15:30:00",
       "rank": 4,
       "code": "000720",
       "name": "新能泰山",
