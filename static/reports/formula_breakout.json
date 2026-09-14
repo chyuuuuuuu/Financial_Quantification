@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-14T15:07:01",
+  "generated_at": "2026-09-14T16:05:21",
   "snapshot_date": "2026-09-14",
-  "snapshot_time": "2026-09-14T15:00:00",
+  "snapshot_time": "2026-09-14T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 6,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 86.9475,
   "avg_breakout_gap_pct": 2.6307,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-14",
-      "snapshot_time": "2026-09-14T15:00:00",
+      "snapshot_time": "2026-09-14T15:30:00",
       "rank": 1,
       "code": "001896",
       "name": "豫能控股",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-14",
-      "snapshot_time": "2026-09-14T15:00:00",
+      "snapshot_time": "2026-09-14T15:30:00",
       "rank": 2,
       "code": "600449",
       "name": "宁夏建材",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-14",
-      "snapshot_time": "2026-09-14T15:00:00",
+      "snapshot_time": "2026-09-14T15:30:00",
       "rank": 3,
       "code": "603663",
       "name": "三祥新材",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-14",
-      "snapshot_time": "2026-09-14T15:00:00",
+      "snapshot_time": "2026-09-14T15:30:00",
       "rank": 4,
       "code": "002918",
       "name": "蒙娜丽莎",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-09-14",
-      "snapshot_time": "2026-09-14T15:00:00",
+      "snapshot_time": "2026-09-14T15:30:00",
       "rank": 5,
       "code": "600566",
       "name": "济川药业",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-09-14",
-      "snapshot_time": "2026-09-14T15:00:00",
+      "snapshot_time": "2026-09-14T15:30:00",
       "rank": 6,
       "code": "601333",
       "name": "广深铁路",
