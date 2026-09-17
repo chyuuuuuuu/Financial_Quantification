@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-17T15:07:07",
+  "generated_at": "2026-09-17T16:03:38",
   "snapshot_date": "2026-09-17",
-  "snapshot_time": "2026-09-17T15:00:00",
+  "snapshot_time": "2026-09-17T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 4,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 93.6792,
   "avg_breakout_gap_pct": 3.2465,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-17",
-      "snapshot_time": "2026-09-17T15:00:00",
+      "snapshot_time": "2026-09-17T15:30:00",
       "rank": 1,
       "code": "600609",
       "name": "金杯汽车",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-17",
-      "snapshot_time": "2026-09-17T15:00:00",
+      "snapshot_time": "2026-09-17T15:30:00",
       "rank": 2,
       "code": "600449",
       "name": "宁夏建材",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-17",
-      "snapshot_time": "2026-09-17T15:00:00",
+      "snapshot_time": "2026-09-17T15:30:00",
       "rank": 3,
       "code": "002796",
       "name": "世嘉科技",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-17",
-      "snapshot_time": "2026-09-17T15:00:00",
+      "snapshot_time": "2026-09-17T15:30:00",
       "rank": 4,
       "code": "603960",
       "name": "克来机电",
