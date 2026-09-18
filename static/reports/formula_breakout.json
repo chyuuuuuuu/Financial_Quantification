@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-18T15:07:03",
+  "generated_at": "2026-09-18T16:04:50",
   "snapshot_date": "2026-09-18",
-  "snapshot_time": "2026-09-18T15:00:00",
+  "snapshot_time": "2026-09-18T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 11,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 83.2434,
   "avg_breakout_gap_pct": 3.0084,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 1,
       "code": "603120",
       "name": "肯特催化",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 2,
       "code": "600520",
       "name": "三佳科技",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 3,
       "code": "002150",
       "name": "正泰电源",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 4,
       "code": "600640",
       "name": "国脉文化",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 5,
       "code": "603818",
       "name": "曲美家居",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 6,
       "code": "002849",
       "name": "威星智能",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 7,
       "code": "002728",
       "name": "特一药业",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 8,
       "code": "002179",
       "name": "中航光电",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 9,
       "code": "001336",
       "name": "楚环科技",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 10,
       "code": "600032",
       "name": "XD浙江新",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-09-18",
-      "snapshot_time": "2026-09-18T15:00:00",
+      "snapshot_time": "2026-09-18T15:30:00",
       "rank": 11,
       "code": "003009",
       "name": "中天火箭",
