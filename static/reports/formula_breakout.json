@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-21T15:07:00",
+  "generated_at": "2026-09-21T16:06:02",
   "snapshot_date": "2026-09-21",
-  "snapshot_time": "2026-09-21T15:00:00",
+  "snapshot_time": "2026-09-21T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 23,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 85.6351,
   "avg_breakout_gap_pct": 2.4986,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 1,
       "code": "002724",
       "name": "海洋王",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 2,
       "code": "002296",
       "name": "辉煌科技",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 3,
       "code": "605566",
       "name": "福莱蒽特",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 4,
       "code": "002367",
       "name": "康力电梯",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 5,
       "code": "600439",
       "name": "瑞贝卡",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 6,
       "code": "002246",
       "name": "北化股份",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 7,
       "code": "000516",
       "name": "国际医学",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 8,
       "code": "002534",
       "name": "西子洁能",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 9,
       "code": "002140",
       "name": "东华科技",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 10,
       "code": "600156",
       "name": "华升股份",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 11,
       "code": "002565",
       "name": "顺灏股份",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 12,
       "code": "600606",
       "name": "绿地控股",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 13,
       "code": "002241",
       "name": "歌尔股份",
@@ -531,7 +531,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 14,
       "code": "603380",
       "name": "易德龙",
@@ -571,7 +571,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 15,
       "code": "600935",
       "name": "华塑股份",
@@ -611,7 +611,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 16,
       "code": "002981",
       "name": "朝阳科技",
@@ -651,7 +651,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 17,
       "code": "002452",
       "name": "长高电气",
@@ -691,7 +691,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 18,
       "code": "600835",
       "name": "上海机电",
@@ -731,7 +731,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 19,
       "code": "601022",
       "name": "宁波远洋",
@@ -771,7 +771,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 20,
       "code": "603655",
       "name": "朗博科技",
@@ -811,7 +811,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 21,
       "code": "601669",
       "name": "中国电建",
@@ -851,7 +851,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 22,
       "code": "601377",
       "name": "兴业证券",
@@ -891,7 +891,7 @@
     },
     {
       "snapshot_date": "2026-09-21",
-      "snapshot_time": "2026-09-21T15:00:00",
+      "snapshot_time": "2026-09-21T15:30:00",
       "rank": 23,
       "code": "603059",
       "name": "倍加洁",
