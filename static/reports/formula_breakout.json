@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-22T15:07:22",
+  "generated_at": "2026-09-22T16:05:33",
   "snapshot_date": "2026-09-22",
-  "snapshot_time": "2026-09-22T15:00:00",
+  "snapshot_time": "2026-09-22T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 10,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 87.4481,
   "avg_breakout_gap_pct": 3.0245,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 1,
       "code": "002881",
       "name": "美格智能",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 2,
       "code": "603661",
       "name": "恒林股份",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 3,
       "code": "002354",
       "name": "天娱数科",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 4,
       "code": "601001",
       "name": "晋控煤业",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 5,
       "code": "603538",
       "name": "美诺华",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 6,
       "code": "600664",
       "name": "哈药股份",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 7,
       "code": "601918",
       "name": "新集能源",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 8,
       "code": "600721",
       "name": "百花医药",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 9,
       "code": "600679",
       "name": "上海凤凰",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-09-22",
-      "snapshot_time": "2026-09-22T15:00:00",
+      "snapshot_time": "2026-09-22T15:30:00",
       "rank": 10,
       "code": "603221",
       "name": "爱丽家居",
