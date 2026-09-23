@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-23T15:07:10",
+  "generated_at": "2026-09-23T16:05:19",
   "snapshot_date": "2026-09-23",
-  "snapshot_time": "2026-09-23T15:00:00",
+  "snapshot_time": "2026-09-23T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 4,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 91.3762,
   "avg_breakout_gap_pct": 2.3327,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-23",
-      "snapshot_time": "2026-09-23T15:00:00",
+      "snapshot_time": "2026-09-23T15:30:00",
       "rank": 1,
       "code": "001367",
       "name": "海森药业",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-23",
-      "snapshot_time": "2026-09-23T15:00:00",
+      "snapshot_time": "2026-09-23T15:30:00",
       "rank": 2,
       "code": "603949",
       "name": "雪龙集团",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-23",
-      "snapshot_time": "2026-09-23T15:00:00",
+      "snapshot_time": "2026-09-23T15:30:00",
       "rank": 3,
       "code": "603630",
       "name": "拉芳家化",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-23",
-      "snapshot_time": "2026-09-23T15:00:00",
+      "snapshot_time": "2026-09-23T15:30:00",
       "rank": 4,
       "code": "002833",
       "name": "弘亚数控",
