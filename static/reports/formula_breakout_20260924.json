@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-24T15:07:00",
+  "generated_at": "2026-09-24T16:05:14",
   "snapshot_date": "2026-09-24",
-  "snapshot_time": "2026-09-24T15:00:00",
+  "snapshot_time": "2026-09-24T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 10,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 90.8711,
   "avg_breakout_gap_pct": 2.2873,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 1,
       "code": "605018",
       "name": "长华集团",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 2,
       "code": "603500",
       "name": "祥和实业",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 3,
       "code": "603776",
       "name": "永安行",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 4,
       "code": "002395",
       "name": "双象股份",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 5,
       "code": "603898",
       "name": "好莱客",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 6,
       "code": "601918",
       "name": "新集能源",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 7,
       "code": "000516",
       "name": "国际医学",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 8,
       "code": "603787",
       "name": "新日股份",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 9,
       "code": "600156",
       "name": "华升股份",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-09-24",
-      "snapshot_time": "2026-09-24T15:00:00",
+      "snapshot_time": "2026-09-24T15:30:00",
       "rank": 10,
       "code": "002006",
       "name": "精工科技",
