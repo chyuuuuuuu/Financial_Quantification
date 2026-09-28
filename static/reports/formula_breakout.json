@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-28T15:07:06",
+  "generated_at": "2026-09-28T16:06:16",
   "snapshot_date": "2026-09-28",
-  "snapshot_time": "2026-09-28T15:00:00",
+  "snapshot_time": "2026-09-28T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 6,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 89.299,
   "avg_breakout_gap_pct": 2.3656,
   "selected_rows": [
     {
       "snapshot_date": "2026-09-28",
-      "snapshot_time": "2026-09-28T15:00:00",
+      "snapshot_time": "2026-09-28T15:30:00",
       "rank": 1,
       "code": "002296",
       "name": "辉煌科技",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-09-28",
-      "snapshot_time": "2026-09-28T15:00:00",
+      "snapshot_time": "2026-09-28T15:30:00",
       "rank": 2,
       "code": "002031",
       "name": "巨轮智能",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-09-28",
-      "snapshot_time": "2026-09-28T15:00:00",
+      "snapshot_time": "2026-09-28T15:30:00",
       "rank": 3,
       "code": "002347",
       "name": "泰尔股份",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-09-28",
-      "snapshot_time": "2026-09-28T15:00:00",
+      "snapshot_time": "2026-09-28T15:30:00",
       "rank": 4,
       "code": "603707",
       "name": "健友股份",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-09-28",
-      "snapshot_time": "2026-09-28T15:00:00",
+      "snapshot_time": "2026-09-28T15:30:00",
       "rank": 5,
       "code": "002480",
       "name": "新筑股份",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-09-28",
-      "snapshot_time": "2026-09-28T15:00:00",
+      "snapshot_time": "2026-09-28T15:30:00",
       "rank": 6,
       "code": "605089",
       "name": "味知香",
