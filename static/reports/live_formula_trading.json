@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-01T15:02:50",
-  "snapshot_date": "2026-10-01",
-  "snapshot_time": "2026-10-01T15:00:00",
-  "snapshot_key": "20261001",
+  "generated_at": "2026-10-02T15:03:01",
+  "snapshot_date": "2026-10-02",
+  "snapshot_time": "2026-10-02T15:00:00",
+  "snapshot_key": "20261002",
   "port": "live_formula_trading",
   "strategy_name": "公式选股Top3实盘跟单",
   "mode": "manual_following",
@@ -10,15 +10,15 @@
   "capital": 15000.0,
   "slots": 3,
   "slot_target_cash": 5000.0,
-  "formula_snapshot_date": "2026-10-01",
-  "formula_snapshot_time": "2026-10-01T15:00:00",
+  "formula_snapshot_date": "2026-10-02",
+  "formula_snapshot_time": "2026-10-02T15:00:00",
   "formula_selected_count": 0,
   "data_status": "refresh_failed",
   "refresh_summary": {
-    "run_time": "2026-10-01T15:00:24.162258",
+    "run_time": "2026-10-02T15:00:24.756067",
     "universe": 3014,
     "refresh_ok": 0,
-    "target_date": "2026-10-01",
+    "target_date": "2026-10-02",
     "target_date_count": 0,
     "latest_date_counts": {
       "": 3014
@@ -28,7 +28,7 @@
       "auto": 3014
     },
     "history_dir": "data_cache/main_uptrend/hist",
-    "output_dir": "data_cache/formula_breakout_runs/20261001_1500_refresh",
+    "output_dir": "data_cache/formula_breakout_runs/20261002_1500_refresh",
     "eastmoney_only": false
   },
   "summary": {
@@ -46,7 +46,7 @@
   "operations": [
     {
       "action": "wait",
-      "date": "2026-10-01",
+      "date": "2026-10-02",
       "reason": "行情刷新失败，未生成当日买卖指令"
     }
   ],
