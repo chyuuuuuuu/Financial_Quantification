@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-08T15:07:05",
+  "generated_at": "2026-10-08T16:08:29",
   "snapshot_date": "2026-10-08",
-  "snapshot_time": "2026-10-08T15:00:00",
+  "snapshot_time": "2026-10-08T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 10,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 80.5249,
   "avg_breakout_gap_pct": 1.9455,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 1,
       "code": "001219",
       "name": "青岛食品",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 2,
       "code": "002951",
       "name": "金时科技",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 3,
       "code": "600315",
       "name": "上海家化",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 4,
       "code": "002802",
       "name": "洪汇新材",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 5,
       "code": "603551",
       "name": "奥普科技",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 6,
       "code": "001336",
       "name": "楚环科技",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 7,
       "code": "600577",
       "name": "精达股份",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 8,
       "code": "002565",
       "name": "顺灏股份",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 9,
       "code": "603178",
       "name": "圣龙股份",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-10-08",
-      "snapshot_time": "2026-10-08T15:00:00",
+      "snapshot_time": "2026-10-08T15:30:00",
       "rank": 10,
       "code": "600303",
       "name": "曙光股份",
