@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-09T15:07:17",
+  "generated_at": "2026-10-09T16:08:59",
   "snapshot_date": "2026-10-09",
-  "snapshot_time": "2026-10-09T15:00:00",
+  "snapshot_time": "2026-10-09T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 22,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 81.7625,
   "avg_breakout_gap_pct": 1.9422,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 1,
       "code": "002166",
       "name": "莱茵生物",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 2,
       "code": "601900",
       "name": "南方传媒",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 3,
       "code": "601236",
       "name": "红塔证券",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 4,
       "code": "603898",
       "name": "好莱客",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 5,
       "code": "600831",
       "name": "广电网络",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 6,
       "code": "600977",
       "name": "中国电影",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 7,
       "code": "600351",
       "name": "亚宝药业",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 8,
       "code": "601068",
       "name": "中铝国际",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 9,
       "code": "601566",
       "name": "九牧王",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 10,
       "code": "002826",
       "name": "易明医药",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 11,
       "code": "002268",
       "name": "电科网安",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 12,
       "code": "002543",
       "name": "万和电气",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 13,
       "code": "000546",
       "name": "金圆股份",
@@ -531,7 +531,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 14,
       "code": "000936",
       "name": "华西股份",
@@ -571,7 +571,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 15,
       "code": "603598",
       "name": "引力传媒",
@@ -611,7 +611,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 16,
       "code": "600161",
       "name": "天坛生物",
@@ -651,7 +651,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 17,
       "code": "000682",
       "name": "东方电子",
@@ -691,7 +691,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 18,
       "code": "002551",
       "name": "尚荣医疗",
@@ -731,7 +731,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 19,
       "code": "601519",
       "name": "大智慧",
@@ -771,7 +771,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 20,
       "code": "600153",
       "name": "建发股份",
@@ -811,7 +811,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 21,
       "code": "600679",
       "name": "上海凤凰",
@@ -851,7 +851,7 @@
     },
     {
       "snapshot_date": "2026-10-09",
-      "snapshot_time": "2026-10-09T15:00:00",
+      "snapshot_time": "2026-10-09T15:30:00",
       "rank": 22,
       "code": "601019",
       "name": "山东出版",
