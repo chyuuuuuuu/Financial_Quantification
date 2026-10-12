@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-12T15:07:06",
+  "generated_at": "2026-10-12T16:08:16",
   "snapshot_date": "2026-10-12",
-  "snapshot_time": "2026-10-12T15:00:00",
+  "snapshot_time": "2026-10-12T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 14,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 84.3074,
   "avg_breakout_gap_pct": 2.4662,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 1,
       "code": "002343",
       "name": "慈文传媒",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 2,
       "code": "601222",
       "name": "林洋能源",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 3,
       "code": "603757",
       "name": "大元泵业",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 4,
       "code": "600548",
       "name": "深高速",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 5,
       "code": "603896",
       "name": "寿仙谷",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 6,
       "code": "603730",
       "name": "岱美股份",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 7,
       "code": "601777",
       "name": "千里科技",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 8,
       "code": "603883",
       "name": "老百姓",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 9,
       "code": "601929",
       "name": "吉视传媒",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 10,
       "code": "603939",
       "name": "益丰药房",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 11,
       "code": "002181",
       "name": "粤 传 媒",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 12,
       "code": "600713",
       "name": "南京医药",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 13,
       "code": "600052",
       "name": "东望时代",
@@ -531,7 +531,7 @@
     },
     {
       "snapshot_date": "2026-10-12",
-      "snapshot_time": "2026-10-12T15:00:00",
+      "snapshot_time": "2026-10-12T15:30:00",
       "rank": 14,
       "code": "601528",
       "name": "瑞丰银行",
