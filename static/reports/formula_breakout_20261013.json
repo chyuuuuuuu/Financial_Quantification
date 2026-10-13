@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-13T15:08:43",
+  "generated_at": "2026-10-13T16:16:15",
   "snapshot_date": "2026-10-13",
-  "snapshot_time": "2026-10-13T15:00:00",
+  "snapshot_time": "2026-10-13T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 10,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 91.854,
   "avg_breakout_gap_pct": 3.0259,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 1,
       "code": "002674",
       "name": "兴业科技",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 2,
       "code": "003029",
       "name": "吉大正元",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 3,
       "code": "000715",
       "name": "中兴商业",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 4,
       "code": "002818",
       "name": "富森美",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 5,
       "code": "003037",
       "name": "三和管桩",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 6,
       "code": "000936",
       "name": "华西股份",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 7,
       "code": "603787",
       "name": "新日股份",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 8,
       "code": "002712",
       "name": "思美传媒",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 9,
       "code": "600577",
       "name": "精达股份",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-10-13",
-      "snapshot_time": "2026-10-13T15:00:00",
+      "snapshot_time": "2026-10-13T15:30:00",
       "rank": 10,
       "code": "600814",
       "name": "杭州解百",
