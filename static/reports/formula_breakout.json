@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-14T15:08:55",
+  "generated_at": "2026-10-14T16:19:36",
   "snapshot_date": "2026-10-14",
-  "snapshot_time": "2026-10-14T15:00:00",
+  "snapshot_time": "2026-10-14T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 9,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 85.6723,
   "avg_breakout_gap_pct": 1.9379,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 1,
       "code": "002490",
       "name": "山东墨龙",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 2,
       "code": "002469",
       "name": "三维化学",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 3,
       "code": "002181",
       "name": "粤 传 媒",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 4,
       "code": "600323",
       "name": "瀚蓝环境",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 5,
       "code": "601001",
       "name": "晋控煤业",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 6,
       "code": "600368",
       "name": "五洲交通",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 7,
       "code": "600339",
       "name": "中油工程",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 8,
       "code": "601921",
       "name": "浙版传媒",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-14",
-      "snapshot_time": "2026-10-14T15:00:00",
+      "snapshot_time": "2026-10-14T15:30:00",
       "rank": 9,
       "code": "000968",
       "name": "蓝焰控股",
