@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-15T15:07:19",
+  "generated_at": "2026-10-15T16:09:22",
   "snapshot_date": "2026-10-15",
-  "snapshot_time": "2026-10-15T15:00:00",
+  "snapshot_time": "2026-10-15T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 5,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 92.295,
   "avg_breakout_gap_pct": 2.9983,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-15",
-      "snapshot_time": "2026-10-15T15:00:00",
+      "snapshot_time": "2026-10-15T15:30:00",
       "rank": 1,
       "code": "003029",
       "name": "吉大正元",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-15",
-      "snapshot_time": "2026-10-15T15:00:00",
+      "snapshot_time": "2026-10-15T15:30:00",
       "rank": 2,
       "code": "002727",
       "name": "一心堂",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-15",
-      "snapshot_time": "2026-10-15T15:00:00",
+      "snapshot_time": "2026-10-15T15:30:00",
       "rank": 3,
       "code": "003013",
       "name": "地铁设计",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-15",
-      "snapshot_time": "2026-10-15T15:00:00",
+      "snapshot_time": "2026-10-15T15:30:00",
       "rank": 4,
       "code": "001233",
       "name": "海安集团",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-15",
-      "snapshot_time": "2026-10-15T15:00:00",
+      "snapshot_time": "2026-10-15T15:30:00",
       "rank": 5,
       "code": "600918",
       "name": "中泰证券",
