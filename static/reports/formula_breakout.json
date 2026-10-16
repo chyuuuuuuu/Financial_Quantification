@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-16T15:08:26",
+  "generated_at": "2026-10-16T16:13:03",
   "snapshot_date": "2026-10-16",
-  "snapshot_time": "2026-10-16T15:00:00",
+  "snapshot_time": "2026-10-16T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 8,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 88.2401,
   "avg_breakout_gap_pct": 1.8597,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 1,
       "code": "002674",
       "name": "兴业科技",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 2,
       "code": "000420",
       "name": "吉林化纤",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 3,
       "code": "600319",
       "name": "亚星化学",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 4,
       "code": "002755",
       "name": "奥赛康",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 5,
       "code": "600368",
       "name": "五洲交通",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 6,
       "code": "600435",
       "name": "北方导航",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 7,
       "code": "600197",
       "name": "伊力特",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-16",
-      "snapshot_time": "2026-10-16T15:00:00",
+      "snapshot_time": "2026-10-16T15:30:00",
       "rank": 8,
       "code": "603239",
       "name": "浙江仙通",
