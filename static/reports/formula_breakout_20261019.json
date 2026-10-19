@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-19T15:07:12",
+  "generated_at": "2026-10-19T16:08:59",
   "snapshot_date": "2026-10-19",
-  "snapshot_time": "2026-10-19T15:00:00",
+  "snapshot_time": "2026-10-19T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 8,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 82.6938,
   "avg_breakout_gap_pct": 1.4992,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 1,
       "code": "603693",
       "name": "江苏新能",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 2,
       "code": "600323",
       "name": "瀚蓝环境",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 3,
       "code": "600495",
       "name": "晋西车轴",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 4,
       "code": "002322",
       "name": "理工能科",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 5,
       "code": "600976",
       "name": "健民集团",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 6,
       "code": "603278",
       "name": "大业股份",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 7,
       "code": "600351",
       "name": "亚宝药业",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-19",
-      "snapshot_time": "2026-10-19T15:00:00",
+      "snapshot_time": "2026-10-19T15:30:00",
       "rank": 8,
       "code": "601528",
       "name": "瑞丰银行",
