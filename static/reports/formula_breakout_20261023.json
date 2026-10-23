@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-23T15:07:56",
+  "generated_at": "2026-10-23T16:13:49",
   "snapshot_date": "2026-10-23",
-  "snapshot_time": "2026-10-23T15:00:00",
+  "snapshot_time": "2026-10-23T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 18,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 90.9132,
   "avg_breakout_gap_pct": 2.6346,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 1,
       "code": "002674",
       "name": "兴业科技",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 2,
       "code": "600785",
       "name": "新华百货",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 3,
       "code": "603658",
       "name": "安图生物",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 4,
       "code": "001282",
       "name": "三联锻造",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 5,
       "code": "002587",
       "name": "奥拓电子",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 6,
       "code": "002354",
       "name": "天娱数科",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 7,
       "code": "002472",
       "name": "双环传动",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 8,
       "code": "603312",
       "name": "西典新能",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 9,
       "code": "603776",
       "name": "永安行",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 10,
       "code": "603025",
       "name": "大豪科技",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 11,
       "code": "603160",
       "name": "汇顶科技",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 12,
       "code": "002322",
       "name": "理工能科",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 13,
       "code": "603918",
       "name": "金桥信息",
@@ -531,7 +531,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 14,
       "code": "002315",
       "name": "焦点科技",
@@ -571,7 +571,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 15,
       "code": "002241",
       "name": "歌尔股份",
@@ -611,7 +611,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 16,
       "code": "600495",
       "name": "晋西车轴",
@@ -651,7 +651,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 17,
       "code": "002045",
       "name": "国光电器",
@@ -691,7 +691,7 @@
     },
     {
       "snapshot_date": "2026-10-23",
-      "snapshot_time": "2026-10-23T15:00:00",
+      "snapshot_time": "2026-10-23T15:30:00",
       "rank": 18,
       "code": "002006",
       "name": "精工科技",
