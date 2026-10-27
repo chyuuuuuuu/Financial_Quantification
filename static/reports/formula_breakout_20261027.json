@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-27T15:07:30",
+  "generated_at": "2026-10-27T16:18:51",
   "snapshot_date": "2026-10-27",
-  "snapshot_time": "2026-10-27T15:00:00",
+  "snapshot_time": "2026-10-27T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 9,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 86.4039,
   "avg_breakout_gap_pct": 4.0266,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 1,
       "code": "002520",
       "name": "日发精机",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 2,
       "code": "001282",
       "name": "三联锻造",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 3,
       "code": "605333",
       "name": "沪光股份",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 4,
       "code": "601956",
       "name": "东贝集团",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 5,
       "code": "002293",
       "name": "罗莱生活",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 6,
       "code": "002690",
       "name": "美亚光电",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 7,
       "code": "002181",
       "name": "粤 传 媒",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 8,
       "code": "600814",
       "name": "杭州解百",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-27",
-      "snapshot_time": "2026-10-27T15:00:00",
+      "snapshot_time": "2026-10-27T15:30:00",
       "rank": 9,
       "code": "601566",
       "name": "九牧王",
