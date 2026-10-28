@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-28T15:07:28",
+  "generated_at": "2026-10-28T16:10:45",
   "snapshot_date": "2026-10-28",
-  "snapshot_time": "2026-10-28T15:00:00",
+  "snapshot_time": "2026-10-28T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 17,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 81.366,
   "avg_breakout_gap_pct": 2.0719,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 1,
       "code": "603680",
       "name": "今创集团",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 2,
       "code": "002553",
       "name": "南方精工",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 3,
       "code": "603776",
       "name": "永安行",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 4,
       "code": "603868",
       "name": "飞科电器",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 5,
       "code": "603035",
       "name": "常熟汽饰",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 6,
       "code": "605018",
       "name": "长华集团",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 7,
       "code": "003015",
       "name": "日久光电",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 8,
       "code": "600295",
       "name": "鄂尔多斯",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 9,
       "code": "603025",
       "name": "大豪科技",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 10,
       "code": "600968",
       "name": "海油发展",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 11,
       "code": "002265",
       "name": "建设工业",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 12,
       "code": "603611",
       "name": "诺力股份",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 13,
       "code": "002683",
       "name": "广东宏大",
@@ -531,7 +531,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 14,
       "code": "002167",
       "name": "东方锆业",
@@ -571,7 +571,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 15,
       "code": "603194",
       "name": "中力股份",
@@ -611,7 +611,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 16,
       "code": "002530",
       "name": "金财互联",
@@ -651,7 +651,7 @@
     },
     {
       "snapshot_date": "2026-10-28",
-      "snapshot_time": "2026-10-28T15:00:00",
+      "snapshot_time": "2026-10-28T15:30:00",
       "rank": 17,
       "code": "002006",
       "name": "精工科技",
