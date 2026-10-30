@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-30T15:07:30",
+  "generated_at": "2026-10-30T16:13:01",
   "snapshot_date": "2026-10-30",
-  "snapshot_time": "2026-10-30T15:00:00",
+  "snapshot_time": "2026-10-30T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 5,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 85.3502,
   "avg_breakout_gap_pct": 3.7745,
   "selected_rows": [
     {
       "snapshot_date": "2026-10-30",
-      "snapshot_time": "2026-10-30T15:00:00",
+      "snapshot_time": "2026-10-30T15:30:00",
       "rank": 1,
       "code": "000410",
       "name": "沈阳机床",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-10-30",
-      "snapshot_time": "2026-10-30T15:00:00",
+      "snapshot_time": "2026-10-30T15:30:00",
       "rank": 2,
       "code": "603273",
       "name": "天元智能",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-10-30",
-      "snapshot_time": "2026-10-30T15:00:00",
+      "snapshot_time": "2026-10-30T15:30:00",
       "rank": 3,
       "code": "603587",
       "name": "地素时尚",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-10-30",
-      "snapshot_time": "2026-10-30T15:00:00",
+      "snapshot_time": "2026-10-30T15:30:00",
       "rank": 4,
       "code": "002265",
       "name": "建设工业",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-10-30",
-      "snapshot_time": "2026-10-30T15:00:00",
+      "snapshot_time": "2026-10-30T15:30:00",
       "rank": 5,
       "code": "002510",
       "name": "天汽模",
