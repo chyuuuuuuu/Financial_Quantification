@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-11-02T15:07:48",
+  "generated_at": "2026-11-02T16:14:09",
   "snapshot_date": "2026-11-02",
-  "snapshot_time": "2026-11-02T15:00:00",
+  "snapshot_time": "2026-11-02T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 15,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 84.4049,
   "avg_breakout_gap_pct": 2.6501,
   "selected_rows": [
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 1,
       "code": "002149",
       "name": "西部材料",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 2,
       "code": "603199",
       "name": "九华旅游",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 3,
       "code": "600419",
       "name": "天润乳业",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 4,
       "code": "601599",
       "name": "浙文影业",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 5,
       "code": "603368",
       "name": "柳药集团",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 6,
       "code": "600960",
       "name": "渤海汽车",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 7,
       "code": "600702",
       "name": "舍得酒业",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 8,
       "code": "603713",
       "name": "密尔克卫",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 9,
       "code": "002011",
       "name": "盾安环境",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 10,
       "code": "600559",
       "name": "老白干酒",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 11,
       "code": "601099",
       "name": "太平洋",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 12,
       "code": "002423",
       "name": "中粮资本",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 13,
       "code": "002362",
       "name": "汉王科技",
@@ -531,7 +531,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 14,
       "code": "600713",
       "name": "南京医药",
@@ -571,7 +571,7 @@
     },
     {
       "snapshot_date": "2026-11-02",
-      "snapshot_time": "2026-11-02T15:00:00",
+      "snapshot_time": "2026-11-02T15:30:00",
       "rank": 15,
       "code": "600197",
       "name": "伊力特",
