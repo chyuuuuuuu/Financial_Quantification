@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-11-04T15:07:23",
+  "generated_at": "2026-11-04T16:13:10",
   "snapshot_date": "2026-11-04",
-  "snapshot_time": "2026-11-04T15:00:00",
+  "snapshot_time": "2026-11-04T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 13,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 85.4724,
   "avg_breakout_gap_pct": 2.2985,
   "selected_rows": [
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 1,
       "code": "002945",
       "name": "华林证券",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 2,
       "code": "002150",
       "name": "正泰电源",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 3,
       "code": "002520",
       "name": "日发精机",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 4,
       "code": "605080",
       "name": "浙江自然",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 5,
       "code": "000513",
       "name": "丽珠集团",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 6,
       "code": "002011",
       "name": "盾安环境",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 7,
       "code": "600523",
       "name": "贵航股份",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 8,
       "code": "600520",
       "name": "三佳科技",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 9,
       "code": "601156",
       "name": "东航物流",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 10,
       "code": "002354",
       "name": "天娱数科",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 11,
       "code": "001282",
       "name": "三联锻造",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 12,
       "code": "002676",
       "name": "顺威股份",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-11-04",
-      "snapshot_time": "2026-11-04T15:00:00",
+      "snapshot_time": "2026-11-04T15:30:00",
       "rank": 13,
       "code": "600116",
       "name": "三峡水利",
