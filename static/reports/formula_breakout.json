@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-11-05T15:07:23",
+  "generated_at": "2026-11-05T16:13:01",
   "snapshot_date": "2026-11-05",
-  "snapshot_time": "2026-11-05T15:00:00",
+  "snapshot_time": "2026-11-05T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 23,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 85.0563,
   "avg_breakout_gap_pct": 2.2622,
   "selected_rows": [
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 1,
       "code": "603596",
       "name": "伯特利",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 2,
       "code": "002045",
       "name": "国光电器",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 3,
       "code": "600530",
       "name": "交大昂立",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 4,
       "code": "000065",
       "name": "北方国际",
@@ -171,7 +171,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 5,
       "code": "603170",
       "name": "宝立食品",
@@ -211,7 +211,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 6,
       "code": "603699",
       "name": "纽威股份",
@@ -251,7 +251,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 7,
       "code": "601155",
       "name": "新城控股",
@@ -291,7 +291,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 8,
       "code": "000635",
       "name": "英 力 特",
@@ -331,7 +331,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 9,
       "code": "601888",
       "name": "中国中免",
@@ -371,7 +371,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 10,
       "code": "002258",
       "name": "利尔化学",
@@ -411,7 +411,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 11,
       "code": "002605",
       "name": "姚记科技",
@@ -451,7 +451,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 12,
       "code": "600078",
       "name": "澄星股份",
@@ -491,7 +491,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 13,
       "code": "603215",
       "name": "比依股份",
@@ -531,7 +531,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 14,
       "code": "603368",
       "name": "柳药集团",
@@ -571,7 +571,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 15,
       "code": "601933",
       "name": "永辉超市",
@@ -611,7 +611,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 16,
       "code": "002299",
       "name": "圣农发展",
@@ -651,7 +651,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 17,
       "code": "002044",
       "name": "美年健康",
@@ -691,7 +691,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 18,
       "code": "600858",
       "name": "银座股份",
@@ -731,7 +731,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 19,
       "code": "603098",
       "name": "森特股份",
@@ -771,7 +771,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 20,
       "code": "600262",
       "name": "北方股份",
@@ -811,7 +811,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 21,
       "code": "003015",
       "name": "日久光电",
@@ -851,7 +851,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 22,
       "code": "002167",
       "name": "东方锆业",
@@ -891,7 +891,7 @@
     },
     {
       "snapshot_date": "2026-11-05",
-      "snapshot_time": "2026-11-05T15:00:00",
+      "snapshot_time": "2026-11-05T15:30:00",
       "rank": 23,
       "code": "600814",
       "name": "杭州解百",
