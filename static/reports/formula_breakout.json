@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-11-06T15:07:28",
+  "generated_at": "2026-11-06T16:12:48",
   "snapshot_date": "2026-11-06",
-  "snapshot_time": "2026-11-06T15:00:00",
+  "snapshot_time": "2026-11-06T15:30:00",
   "port": "formula_breakout",
   "formula_name": "三倍阳缩量回调突破",
   "selected_count": 4,
-  "display_limit": 60,
+  "display_limit": 200,
   "avg_formula_score": 80.8042,
   "avg_breakout_gap_pct": 0.28,
   "selected_rows": [
     {
       "snapshot_date": "2026-11-06",
-      "snapshot_time": "2026-11-06T15:00:00",
+      "snapshot_time": "2026-11-06T15:30:00",
       "rank": 1,
       "code": "002945",
       "name": "华林证券",
@@ -51,7 +51,7 @@
     },
     {
       "snapshot_date": "2026-11-06",
-      "snapshot_time": "2026-11-06T15:00:00",
+      "snapshot_time": "2026-11-06T15:30:00",
       "rank": 2,
       "code": "000902",
       "name": "新洋丰",
@@ -91,7 +91,7 @@
     },
     {
       "snapshot_date": "2026-11-06",
-      "snapshot_time": "2026-11-06T15:00:00",
+      "snapshot_time": "2026-11-06T15:30:00",
       "rank": 3,
       "code": "600483",
       "name": "福能股份",
@@ -131,7 +131,7 @@
     },
     {
       "snapshot_date": "2026-11-06",
-      "snapshot_time": "2026-11-06T15:00:00",
+      "snapshot_time": "2026-11-06T15:30:00",
       "rank": 4,
       "code": "600116",
       "name": "三峡水利",
